@@ -4,7 +4,7 @@
 #include "modelclass.h"
 
 
-ModelClass::ModelClass()
+ModelClass::ModelClass():m_Texture(nullptr)
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;
@@ -21,7 +21,7 @@ ModelClass::~ModelClass()
 }
 
 
-bool ModelClass::Initialize(ID3D11Device* device)
+bool ModelClass::Initialize(ID3D11Device* device,ID3D11DeviceContext* deviceContext, char* textureFilename)
 {
 	bool result;
 
@@ -29,6 +29,13 @@ bool ModelClass::Initialize(ID3D11Device* device)
 	// Initialize the vertex and index buffers.
 	result = InitializeBuffers(device);
 	if(!result)
+	{
+		return false;
+	}
+
+	//이 모델의 텍스쳐를 불러옴
+	result = LoadTexture(device, deviceContext, textureFilename);
+	if (!result)
 	{
 		return false;
 	}
@@ -41,6 +48,9 @@ void ModelClass::Shutdown()
 {
 	// Shutdown the vertex and index buffers.
 	ShutdownBuffers();
+
+	//모델텍스쳐를 릴리즈 합니다.
+	ReleaseTexture();
 
 	return;
 }
@@ -58,6 +68,11 @@ void ModelClass::Render(ID3D11DeviceContext* deviceContext)
 int ModelClass::GetIndexCount()
 {
 	return m_indexCount;
+}
+
+ID3D11ShaderResourceView* ModelClass::GetTexture()
+{
+	return m_Texture->GetTexture();
 }
 
 
@@ -92,18 +107,24 @@ bool ModelClass::InitializeBuffers(ID3D11Device* device)
 
 	// Load the vertex array with data.
 	vertices[0].position = XMFLOAT3(-1.0f, -1.0f, 0.0f);  // Bottom left.
-	vertices[0].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[0].texture = XMFLOAT2(0.0f, 1.0f);
 
-	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top middle.
-	vertices[1].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[1].position = XMFLOAT3(0.0f, 1.0f, 0.0f);  // Top left.
+	vertices[1].texture = XMFLOAT2(0.5f, 0.0f);
 
-	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
-	vertices[2].color = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	vertices[2].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Top right.
+	vertices[2].texture = XMFLOAT2(1.0f, 1.0f);
+
+	//vertices[3].position = XMFLOAT3(1.0f, -1.0f, 0.0f);  // Bottom right.
+	//vertices[3].texture = XMFLOAT2(1.0f, 1.0f);
 
 	// Load the index array with data.
 	indices[0] = 0;  // Bottom left.
-	indices[1] = 1;  // Top middle.
-	indices[2] = 2;  // Bottom right.
+	indices[1] = 1;
+	indices[2] = 2;  // Top middle.
+	//indices[3] = 0;  // Bottom right.
+	//indices[4] = 2;
+	//indices[5] = 3;
 
 	// Set up the description of the static vertex buffer.
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -196,4 +217,34 @@ void ModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 	deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	return;
+}
+
+bool ModelClass::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename)
+{
+	//텍스쳐 객체를 만듭니다.
+	m_Texture = new TextureClass;
+	if (!m_Texture)
+	{
+		return false;
+	}
+
+	//텍스쳐 객체를 초기화합니다.
+	bool result = m_Texture->Initialize(device, deviceContext, filename);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+void ModelClass::ReleaseTexture()
+{
+	//텍스쳐 객체를 릴리즈합니다.
+	if (m_Texture)
+	{
+		m_Texture->Shutdown();
+		delete m_Texture;
+		m_Texture = nullptr;
+	}
 }
