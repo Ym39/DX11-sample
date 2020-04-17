@@ -11,9 +11,11 @@ SamplerState SampleType;
 
 cbuffer LightBuffer
 {
+    float4 ambientColor;
     float4 diffuseColor;
 	float3 lightPosition;
-	float padding;
+	float specularPower;
+	float4 specularColor;
 };
 
 //////////////
@@ -24,6 +26,8 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
 	float3 diffuse : TEXCOORD1;
+	float3 viewDirection : TEXCOORD2;
+	float3 reflection : TEXCOORD3;
 };
 
 
@@ -38,11 +42,21 @@ float4 LightPixelShader(PixelInputType input) : SV_TARGET
     //Saturate the light amount.
 	float4 diffuse = saturate(float4(input.diffuse, 1));
 
+	float4 outputColor = ambientColor;
+
+	float4 specular = 0.0f;
+	if(diffuse.x > 0)
+	{
+	   outputColor += diffuse * diffuseColor;
+
+	   specular = saturate(dot(input.reflection, -input.viewDirection));
+	   specular = pow(specular, specularPower);
+	}
 	//Determine the final amount of diffuse color based on the diffuse color combine with the light intensity.
-	float4 outputColor = saturate(diffuse * diffuseColor);
+	outputColor = outputColor * textureColor;
 
 	//Multiply the texture pixel and the final diffuse color to get the final pixel color result.
-	outputColor = outputColor * textureColor;
+	outputColor = saturate(outputColor + specular);
 
     return outputColor;
 }

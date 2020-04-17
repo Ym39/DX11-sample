@@ -15,8 +15,16 @@ cbuffer MatrixBuffer
 
 cbuffer LightBuffer
 {
+    float4 ambientColor;
     float4 diffuseColor;
 	float3 lightPosition;
+	float specularPower;
+	float4 specularColor;
+};
+
+cbuffer CameraBuffer
+{
+    float3 cameraPosition;
 	float padding;
 };
 
@@ -36,6 +44,8 @@ struct PixelInputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
 	float3 diffuse : TEXCOORD1;
+	float3 viewDirection : TEXCOORD2;
+	float3 reflection : TEXCOORD3;
 };
 
 
@@ -56,6 +66,9 @@ PixelInputType LightVertexShader(VertexInputType input)
 	// 빛의 방향 벡터 계산
 	float3 lightDir = normalize((float3)output.position - lightPosition);
 
+	//카메라의 벡터 계산
+	output.viewDirection = normalize(output.position.xyz - cameraPosition.xyz);
+
 	//뷰, 투영 매트릭스에 대한 정점 위치 계산
     output.position = mul(output.position, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
@@ -63,6 +76,9 @@ PixelInputType LightVertexShader(VertexInputType input)
 	//법선 벡터 계산
 	float3 worldNormal = mul(input.normal, (float3x3)worldMatrix);
 	worldNormal = normalize(worldNormal);
+
+	//리플렉션 벡터 계산
+	output.reflection = reflect(lightDir, worldNormal);
 
 	//빛의 양을 계산
 	output.diffuse = dot(-lightDir, worldNormal);
