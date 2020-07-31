@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -113,6 +113,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bitmapclass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
     <ClCompile Include="colorshaderclass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
@@ -123,9 +124,12 @@
     <ClCompile Include="modelclass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
+    <ClCompile Include="TextureShaderClass.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bitmapclass.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="colorshaderclass.h" />
     <ClInclude Include="d3dclass.h" />
     <ClInclude Include="graphicsclass.h" />
     <ClInclude Include="inputclass.h" />
@@ -133,6 +137,7 @@
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="TextureClass.h" />
+    <ClInclude Include="TextureShaderClass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="color.ps" />

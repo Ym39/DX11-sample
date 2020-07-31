@@ -91,9 +91,35 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	
 	m_Light->SetAmbientColor(0.1f, 0.1f, 0.1f,1.0f);
 	m_Light->SetDiffuseColor(1.0f, 1.0f, 1.0f, 1.0f);
-	m_Light->SetPosition(-5.0f, 0.0f, -5.0f);
+	m_Light->SetPosition(-5.0f, 0.0f, -200.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(50.0f);
+
+	m_Bitmap = new BitmapClass;
+	if (!m_Bitmap)
+		return false;
+
+	result = m_Bitmap->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), screenWidth, screenHeight, "stone01.tga", 300, 300);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bitmap object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_TextureShader = new TextureShaderClass;
+	if (!m_TextureShader)
+		return false;
+
+	result = m_TextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the texture shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_Texture = new TextureClass;
+	if (!m_Texture)
+		return false;
 
 	return true;
 }
@@ -138,6 +164,25 @@ void GraphicsClass::Shutdown()
 		m_Light = 0;
 	}
 
+	if (m_Bitmap)
+	{
+		m_Bitmap->Shutdown();
+		delete m_Bitmap;
+		m_Bitmap = nullptr;
+	}
+
+	if (m_TextureShader)
+	{
+		delete m_TextureShader;
+		m_TextureShader = nullptr;
+	}
+
+	if (m_Texture)
+	{
+		delete m_Texture;
+		m_Texture = nullptr;
+	}
+
 	return;
 }
 
@@ -167,7 +212,7 @@ bool GraphicsClass::Frame()
 
 bool GraphicsClass::Render(float rotation)
 {
-	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	XMMATRIX worldMatrix,worldMatrix_2D, viewMatrix, projectionMatrix,orthoMatrix;
 	bool result;
 
 
@@ -181,10 +226,12 @@ bool GraphicsClass::Render(float rotation)
 	m_Direct3D->GetWorldMatrix(worldMatrix);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
 	// Rotate the world matirx by the rotation value so that the triangle will spin.
 	rotation = XMConvertToRadians(rotation);
 	XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation);
+	worldMatrix_2D = worldMatrix;
 	worldMatrix = worldMatrix * rotationMatrix;
 
 	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
@@ -198,7 +245,17 @@ bool GraphicsClass::Render(float rotation)
 		return false;
 	}
 
-	// Present the rendered scene to the screen.
+	m_Direct3D->TurnZBufferOff();
+
+	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
+	if (!result)
+		return false;
+
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());
+
+	m_Direct3D->TurnZBufferOn();
+
+	//Present the rendered scene to the screen.
 	m_Direct3D->EndScene();
 
 	return true;

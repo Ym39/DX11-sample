@@ -45,6 +45,12 @@
     <ClCompile Include="LightClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Bitmapclass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -69,6 +75,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="LightClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="colorshaderclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Bitmapclass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
