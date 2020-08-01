@@ -14,13 +14,15 @@ TextureClass::~TextureClass()
 
 bool TextureClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* filename)
 {
-	bool result;
+	/*bool result;
 	int height, width;
 	D3D11_TEXTURE2D_DESC textureDesc;
 	HRESULT hResult;
 	unsigned int rowPitch;
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 
+
+	
 	result = LoadTarga(filename, height, width);
 	if (!result)
 	{
@@ -62,7 +64,14 @@ bool TextureClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	deviceContext->GenerateMips(m_textureView);
 
 	delete[] m_targaData;
-	m_targaData = nullptr;
+	m_targaData = nullptr;*/
+
+	HRESULT result;
+	DirectX::ScratchImage image = LoadTextureFromFile(filename);
+	result = CreateShaderResourceView(device, image.GetImages(), image.GetImageCount(), image.GetMetadata(), &m_textureView);
+
+	if (FAILED(result))
+		return false;
 
 	return true;
 }
@@ -183,6 +192,37 @@ bool TextureClass::LoadTarga(char* filename, int& height, int& width)
 	targaImage = 0;
 
 	return true;
+}
+
+ScratchImage TextureClass::LoadTextureFromFile(LPCSTR filename)
+{
+	// Load the texture.
+	string str(filename);
+	wstring wsTmp(str.begin(), str.end());
+
+	wstring ws = wsTmp;
+	// Load the texture.
+	WCHAR ext[_MAX_EXT];
+	_wsplitpath_s(ws.c_str(), nullptr, 0, nullptr, 0, nullptr, 0, ext, _MAX_EXT);
+
+	HRESULT hr;
+	ScratchImage image;
+	if (_wcsicmp(ext, L".dds") == 0)
+	{
+		hr = LoadFromDDSFile(ws.c_str(), DDS_FLAGS_NONE, nullptr, image);
+	}
+
+	else if (_wcsicmp(ext, L".tga") == 0)
+	{
+		hr = LoadFromTGAFile(ws.c_str(), nullptr, image);
+	}
+
+	else if (_wcsicmp(ext, L".wic") == 0)
+	{
+		hr = LoadFromWICFile(ws.c_str(), WIC_FLAGS_NONE, nullptr, image);
+	}
+
+	return image;
 }
 
 

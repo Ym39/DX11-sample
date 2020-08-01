@@ -1,4 +1,5 @@
 ﻿  graphicsclass.cpp
-C:\Users\admin\Desktop\DirectX11\graphicsclass.cpp(32,27): warning C4316:  'D3DClass': 힙에 할당된 개체가 16에 맞추어져 있지 않을 수도 있습니다
-C:\Users\admin\Desktop\DirectX11\graphicsclass.cpp(47,28): warning C4316:  'CameraClass': 힙에 할당된 개체가 16에 맞추어져 있지 않을 수도 있습니다
-  dx.vcxproj -> C:\Users\admin\Desktop\DirectX11\Debug\dx.exe
+C:\Users\vinoo\Desktop\DirectX11\graphicsclass.cpp(32,27): warning C4316: 'D3DClass': 힙에 할당된 개체가 16에 맞추어져 있지 않을 수도 있습니다
+C:\Users\vinoo\Desktop\DirectX11\graphicsclass.cpp(47,28): warning C4316: 'CameraClass': 힙에 할당된 개체가 16에 맞추어져 있지 않을 수도 있습니다
+C:\Users\vinoo\Desktop\DirectX11\graphicsclass.cpp(128,26): warning C4316: 'TextClass': 힙에 할당된 개체가 16에 맞추어져 있지 않을 수도 있습니다
+  dx.vcxproj -> C:\Users\vinoo\Desktop\DirectX11\Debug\dx.exe

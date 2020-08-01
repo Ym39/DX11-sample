@@ -16,6 +16,7 @@
 #include "Bitmapclass.h"
 #include "TextureShaderClass.h"
 #include "TextureClass.h"
+#include"TextClass.h"
 
 
 /////////////
@@ -39,9 +40,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame();
-
-private:
+	bool Frame(int, int);
 	bool Render(float rotation);
 
 private:
@@ -53,6 +52,7 @@ private:
 	TextureShaderClass* m_TextureShader;
 	TextureClass* m_Texture;
 	BitmapClass* m_Bitmap;
+	TextClass* m_Text;
 
 };
 

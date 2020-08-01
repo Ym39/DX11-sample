@@ -2,6 +2,10 @@
 //INCLUDES
 #include<d3d11.h>
 #include<stdio.h>
+#include"DirectXTex.h"
+#include<string>
+using namespace DirectX;
+using namespace std;
 
 
 class TextureClass
@@ -26,6 +30,7 @@ public:
 	ID3D11ShaderResourceView* GetTexture();
 private:
 	bool LoadTarga(char*, int&, int&);
+	ScratchImage LoadTextureFromFile(LPCSTR);
 private:
 	unsigned char* m_targaData;
 	ID3D11Texture2D* m_texture;

@@ -4,7 +4,7 @@
 #include "graphicsclass.h"
 
 
-GraphicsClass::GraphicsClass()
+GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr)
 {
 	m_Direct3D = 0;
 	m_Camera = 0;
@@ -51,7 +51,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Set the initial position of the camera.
+	XMMATRIX baseViewMatrix;
 	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->Render();
+	m_Camera->GetViewMatrix(baseViewMatrix);
+
 
 	// Create the model object.
 	m_Model = new ModelClass;
@@ -121,6 +125,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!m_Texture)
 		return false;
 
+	m_Text = new TextClass();
+	if (!m_Text)
+		return false;
+
+	result = m_Text->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), hwnd, screenWidth, screenHeight, baseViewMatrix);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -183,11 +198,18 @@ void GraphicsClass::Shutdown()
 		m_Texture = nullptr;
 	}
 
+	if (m_Text)
+	{
+		m_Text->Shutdown();
+		delete m_Text;
+		m_Text = nullptr;
+	}
+
 	return;
 }
 
 
-bool GraphicsClass::Frame()
+bool GraphicsClass::Frame(int mouseX,int mouseY)
 {
 	bool result;
 	static float rotation = 0.0f;
@@ -198,6 +220,10 @@ bool GraphicsClass::Frame()
 	{
 		rotation -= 360.0f;
 	}
+
+	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext());
+	if (!result)
+		return false;
 
 	// Render the graphics scene.
 	result = Render(rotation);
@@ -247,11 +273,22 @@ bool GraphicsClass::Render(float rotation)
 
 	m_Direct3D->TurnZBufferOff();
 
+	m_Direct3D->TurnOnAlphaBlending();
+
 	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
 	if (!result)
 		return false;
 
 	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());
+
+	// Render the text strings.
+	result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix_2D, orthoMatrix);
+	if (!result)
+	{
+		return false;
+	}
+
+	m_Direct3D->TurnOffAlphaBlending();
 
 	m_Direct3D->TurnZBufferOn();
 
