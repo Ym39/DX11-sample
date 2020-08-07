@@ -171,43 +171,69 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX& worldMatrix
 	return true;
 }
 
-bool TextClass::SetMousePosition(int mouseX, int mouseY, ID3D11DeviceContext* deviceContext)
+bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 {
 	char tempString[16];
-	char mouseString[16];
+	char fpsString[16];
+	float red, green, blue;
 	bool result;
 
+	if (fps > 9999)
+		fps = 9999;
 
-	// Convert the mouseX integer to string format.
-	_itoa_s(mouseX, tempString, 10);
+	_itoa_s(fps, tempString, 10);
 
-	// Setup the mouseX string.
-	strcpy_s(mouseString, "Mouse X: ");
-	strcat_s(mouseString, tempString);
+	strcpy_s(fpsString, "Fps: ");
+	strcat_s(fpsString, tempString);
 
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence1, mouseString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
-	if (!result)
+	if (fps >= 60)
 	{
-		return false;
+		red = 0.0f;
+		green = 1.0f;
+		blue = 0.0f;
 	}
 
-	// Convert the mouseY integer to string format.
-	_itoa_s(mouseY, tempString, 10);
-
-	// Setup the mouseY string.
-	strcpy_s(mouseString, "Mouse Y: ");
-	strcat_s(mouseString, tempString);
-
-	// Update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence2, mouseString, 20, 40, 1.0f, 1.0f, 1.0f, deviceContext);
-	if (!result)
+	if (fps < 60)
 	{
-		return false;
+		red = 1.0f;
+		green = 1.0f;
+		blue = 0.0f;
 	}
+
+	if (fps < 30)
+	{
+		red = 1.0f;
+		green = 0.0f;
+		blue = 0.0f;
+	}
+
+	result = UpdateSentence(m_sentence1, fpsString, 20, 20, red, green, blue, deviceContext);
+	if (!result)
+		return false;
 
 	return true;
 }
+
+bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[16];
+	char cpuString[16];
+	bool result;
+
+	_itoa_s(cpu, tempString, 10);
+
+	strcpy_s(cpuString, "Cpu: ");
+	strcat_s(cpuString, tempString);
+	strcat_s(cpuString, "%");
+
+	result = UpdateSentence(m_sentence2, cpuString, 20, 40, 0.0, 1.0, 0.0, deviceContext);
+	if (!result)
+		return false;
+
+	return true;
+}
+
+
 
 bool TextClass::InitializeSentence(SentenceType** sentence, int maxLength, ID3D11Device* device)
 {

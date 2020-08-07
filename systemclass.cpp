@@ -4,10 +4,9 @@
 #include "systemclass.h"
 
 
-SystemClass::SystemClass()
+SystemClass::SystemClass():m_Input(nullptr),m_Graphics(nullptr),m_Fps(nullptr),m_Cpu(nullptr),m_Timer(nullptr)
 {
-	m_Input = 0;
-	m_Graphics = 0;
+	
 }
 
 
@@ -59,6 +58,29 @@ bool SystemClass::Initialize()
 	{
 		return false;
 	}
+
+	m_Fps = new FpsClass;
+	if (!m_Fps)
+		return false;
+
+	m_Fps->Initailize();
+
+	m_Cpu = new CpuClass;
+	if (!m_Cpu)
+		return false;
+	
+	m_Cpu->Initialize();
+
+	m_Timer = new TimerClass;
+	if (!m_Timer)
+		return false;
+
+	result = m_Timer->Initialize();
+	if (!result)
+	{
+		MessageBox(m_hwnd, L"Could not initalize the Timer object.", L"Error", MB_OK);
+		return false;
+	}
 	
 	return true;
 }
@@ -81,6 +103,26 @@ void SystemClass::Shutdown()
 		delete m_Input;
 		m_Input = 0;
 	}
+
+	if (m_Fps)
+	{
+		delete m_Fps;
+		m_Fps = nullptr;
+	}
+
+	if (m_Cpu)
+	{
+		m_Cpu->Shutdown();
+		delete m_Cpu;
+		m_Cpu = nullptr;
+	}
+
+	if (m_Timer)
+	{
+		delete m_Timer;
+		m_Timer = nullptr;
+	}
+
 
 	// Shutdown the window.
 	ShutdownWindows();
@@ -139,6 +181,10 @@ bool SystemClass::Frame()
 	bool result;
 	int mouseX, mouseY;
 
+	m_Timer->Frame();
+	m_Fps->Frame();
+	m_Cpu->Frame();
+
 	result = m_Input->Frame();
 	if (!result)
 	{
@@ -151,7 +197,7 @@ bool SystemClass::Frame()
 
 
 	// Do the frame processing for the graphics object.
-	result = m_Graphics->Frame(mouseX,mouseY);
+	result = m_Graphics->Frame(m_Fps->GetFps(),m_Cpu->GetCpuPercentage(),m_Timer->GetTime());
 	if(!result)
 	{
 		return false;

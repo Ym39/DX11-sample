@@ -209,7 +209,7 @@ void GraphicsClass::Shutdown()
 }
 
 
-bool GraphicsClass::Frame(int mouseX,int mouseY)
+bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
 {
 	bool result;
 	static float rotation = 0.0f;
@@ -221,7 +221,11 @@ bool GraphicsClass::Frame(int mouseX,int mouseY)
 		rotation -= 360.0f;
 	}
 
-	result = m_Text->SetMousePosition(mouseX, mouseY, m_Direct3D->GetDeviceContext());
+	result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
+	if (!result)
+		return false;
+
+	result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;
 
@@ -275,11 +279,11 @@ bool GraphicsClass::Render(float rotation)
 
 	m_Direct3D->TurnOnAlphaBlending();
 
-	result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
+	/*result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
 	if (!result)
 		return false;
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());*/
 
 	// Render the text strings.
 	result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix_2D, orthoMatrix);
