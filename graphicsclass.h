@@ -17,7 +17,8 @@
 #include "TextureShaderClass.h"
 #include "TextureClass.h"
 #include"TextClass.h"
-
+#include"FrustumClass.h"
+#include"ModelListClass.h"
 
 /////////////
 // GLOBALS //
@@ -40,7 +41,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame(int, int, float);
+	bool Frame(float);
 	bool Render(float rotation);
 
 private:
@@ -53,6 +54,8 @@ private:
 	TextureClass* m_Texture;
 	BitmapClass* m_Bitmap;
 	TextClass* m_Text;
+	ModelListClass* m_ModelList;
+	FrustumClass* m_Frustum;
 
 };
 

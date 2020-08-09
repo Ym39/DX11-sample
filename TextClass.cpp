@@ -233,6 +233,25 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	return true;
 }
 
+bool TextClass::SetRanderCount(int randerCount, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[16];
+	char renderCounterString[32];
+	bool result;
+
+	_itoa_s(randerCount, tempString, 10);
+
+	strcpy_s(renderCounterString, "Render Count: ");
+	strcat_s(renderCounterString, tempString);
+	strcat_s(renderCounterString, "%");
+
+	result = UpdateSentence(m_sentence2, renderCounterString, 20, 40, 0.0, 1.0, 0.0, deviceContext);
+	if (!result)
+		return false;
+
+	return true;
+}
+
 
 
 bool TextClass::InitializeSentence(SentenceType** sentence, int maxLength, ID3D11Device* device)

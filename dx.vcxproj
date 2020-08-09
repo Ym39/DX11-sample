@@ -128,6 +128,8 @@
     <ClCompile Include="LightClass.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="modelclass.cpp" />
+    <ClCompile Include="ModelListClass.cpp" />
+    <ClCompile Include="PositionClass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="TextClass.cpp" />
     <ClCompile Include="TextureClass.cpp" />
@@ -150,6 +152,8 @@
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="LightClass.h" />
     <ClInclude Include="modelclass.h" />
+    <ClInclude Include="ModelListClass.h" />
+    <ClInclude Include="PositionClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="TextClass.h" />
     <ClInclude Include="TextureClass.h" />

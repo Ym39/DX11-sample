@@ -4,7 +4,7 @@
 #include "graphicsclass.h"
 
 
-GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr)
+GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr)
 {
 	m_Direct3D = 0;
 	m_Camera = 0;
@@ -136,6 +136,18 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	m_ModelList = new ModelListClass();
+	if (!m_ModelList)
+		return false;
+
+	result = m_ModelList->Initiailze(25);
+	if (!result)
+		return false;
+
+	m_Frustum = new FrustumClass();
+	if (!m_Frustum)
+		return false;
+
 	return true;
 }
 
@@ -205,11 +217,24 @@ void GraphicsClass::Shutdown()
 		m_Text = nullptr;
 	}
 
+	if (m_Frustum)
+	{
+		delete m_Frustum;
+		m_Frustum = nullptr;
+	}
+
+	if (m_ModelList)
+	{
+		m_ModelList->Shutdown();
+		delete m_ModelList;
+		m_ModelList = nullptr;
+	}
+
 	return;
 }
 
 
-bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
+bool GraphicsClass::Frame(float rotationY)
 {
 	bool result;
 	static float rotation = 0.0f;
@@ -221,13 +246,16 @@ bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
 		rotation -= 360.0f;
 	}
 
-	result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
+	m_Camera->SetPosition(0.0f, 0.0f, -10.0f);
+	m_Camera->SetRotation(0.0f,rotationY,0.0f);
+
+	/*result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;
 
 	result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
 	if (!result)
-		return false;
+		return false;*/
 
 	// Render the graphics scene.
 	result = Render(rotation);
@@ -243,6 +271,9 @@ bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
 bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix,worldMatrix_2D, viewMatrix, projectionMatrix,orthoMatrix;
+	float positionX, positionY, positionZ, radius;
+	radius = 1.0f;
+	XMFLOAT4 color;
 	bool result;
 
 
@@ -258,22 +289,46 @@ bool GraphicsClass::Render(float rotation)
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-	// Rotate the world matirx by the rotation value so that the triangle will spin.
-	rotation = XMConvertToRadians(rotation);
-	XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation);
-	worldMatrix_2D = worldMatrix;
-	worldMatrix = worldMatrix * rotationMatrix;
+	m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
 
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
-	m_Model->Render(m_Direct3D->GetDeviceContext());
+	int modelCount = m_ModelList->GetModelCount();
 
-	// Render the model using the color shader.
-	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(),m_Light->GetAmbientColor(),
-		m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
-	if (!result)
+	int renderCount = 0;
+
+	for (int index = 0; index < modelCount; index++)
+	{
+		m_ModelList->GetData(index, positionX, positionY, positionZ, color);
+
+		if (m_Frustum->CheckCube(positionX, positionY, positionZ, radius))
+		{
+			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);
+			
+			m_Model->Render(m_Direct3D->GetDeviceContext());
+
+			m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(), m_Light->GetAmbientColor(),
+				m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+			m_Direct3D->GetWorldMatrix(worldMatrix);
+
+			renderCount++;
+		}
+	}
+
+	if (!m_Text->SetRanderCount(renderCount, m_Direct3D->GetDeviceContext()));
 	{
 		return false;
 	}
+
+	//// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//m_Model->Render(m_Direct3D->GetDeviceContext());
+
+	//// Render the model using the color shader.
+	//result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(),m_Light->GetAmbientColor(),
+	//	m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
+	//if (!result)
+	//{
+	//	return false;
+	//}
 
 	m_Direct3D->TurnZBufferOff();
 
