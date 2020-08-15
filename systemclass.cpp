@@ -4,7 +4,7 @@
 #include "systemclass.h"
 
 
-SystemClass::SystemClass():m_Input(nullptr),m_Graphics(nullptr),m_Fps(nullptr),m_Cpu(nullptr),m_Timer(nullptr)
+SystemClass::SystemClass():m_Input(nullptr),m_Graphics(nullptr),m_Fps(nullptr),m_Cpu(nullptr),m_Timer(nullptr),m_Position(nullptr)
 {
 	
 }
@@ -81,6 +81,10 @@ bool SystemClass::Initialize()
 		MessageBox(m_hwnd, L"Could not initalize the Timer object.", L"Error", MB_OK);
 		return false;
 	}
+
+	m_Position = new PositionClass();
+	if (!m_Position)
+		return false;
 	
 	return true;
 }
@@ -88,6 +92,7 @@ bool SystemClass::Initialize()
 
 void SystemClass::Shutdown()
 {
+
 	// Release the graphics object.
 	if(m_Graphics)
 	{
@@ -121,6 +126,12 @@ void SystemClass::Shutdown()
 	{
 		delete m_Timer;
 		m_Timer = nullptr;
+	}
+
+	if (m_Position)
+	{
+		delete m_Position;
+		m_Position = nullptr;
 	}
 
 
@@ -194,10 +205,19 @@ bool SystemClass::Frame()
 	// Get the location of the mouse from the input object,
 	m_Input->GetMouseLocation(mouseX, mouseY);
 
+	m_Position->SetFrameTime(m_Timer->GetTime());
 
+	bool keyDown = m_Input->IsLeftArrowPressed();
+	m_Position->TurnLeft(keyDown);
+
+	keyDown = m_Input->IsRightArrowPressed();
+	m_Position->TurnRight(keyDown);
+
+	float rotationY = 0.0f;
+	m_Position->GetRotation(rotationY);
 
 	// Do the frame processing for the graphics object.
-	result = m_Graphics->Frame(m_Fps->GetFps(),m_Cpu->GetCpuPercentage(),m_Timer->GetTime());
+	result = m_Graphics->Frame(rotationY);
 	if(!result)
 	{
 		return false;

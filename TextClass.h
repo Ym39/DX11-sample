@@ -26,6 +26,7 @@ public:
 
 	bool SetFps(int, ID3D11DeviceContext*);
 	bool SetCpu(int, ID3D11DeviceContext*);
+	bool SetRanderCount(int, ID3D11DeviceContext*);
     
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);

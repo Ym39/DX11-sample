@@ -48,6 +48,60 @@ bool ModelClass::Initialize(ID3D11Device* device,ID3D11DeviceContext* deviceCont
 	return true;
 }
 
+bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2)
+{
+	bool result;
+
+	result = LoadModel(modelFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the vertex and index buffers.
+	result = InitializeBuffers(device);
+	if (!result)
+	{
+		return false;
+	}
+
+	//이 모델의 텍스쳐를 불러옴
+	result = LoadTexture(device, textureFilename1,textureFilename2);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2, char* textureFilename3)
+{
+	bool result;
+
+	result = LoadModel(modelFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	// Initialize the vertex and index buffers.
+	result = InitializeBuffers(device);
+	if (!result)
+	{
+		return false;
+	}
+
+	//이 모델의 텍스쳐를 불러옴
+	result = LoadTexture(device, textureFilename1, textureFilename2,textureFilename3);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 
 void ModelClass::Shutdown()
 {
@@ -80,6 +134,11 @@ int ModelClass::GetIndexCount()
 ID3D11ShaderResourceView* ModelClass::GetTexture()
 {
 	return m_Texture->GetTexture();
+}
+
+ID3D11ShaderResourceView** ModelClass::GetTextureArray()
+{
+	return m_TextureArray->GetTextureArray();
 }
 
 
@@ -257,6 +316,42 @@ bool ModelClass::LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceCo
 	return true;
 }
 
+bool ModelClass::LoadTexture(ID3D11Device* device, char* filename1, char* filename2)
+{
+	m_TextureArray = new TextureArrayClass;
+	if (!m_TextureArray)
+	{
+		return false;
+	}
+
+	//텍스쳐 객체를 초기화합니다.
+	bool result = m_TextureArray->Initialize(device, filename1, filename2);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
+bool ModelClass::LoadTexture(ID3D11Device* device, char* filename1, char* filename2, char* filename3)
+{
+	m_TextureArray = new TextureArrayClass;
+	if (!m_TextureArray)
+	{
+		return false;
+	}
+
+	//텍스쳐 객체를 초기화합니다.
+	bool result = m_TextureArray->Initialize(device, filename1, filename2,filename3);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void ModelClass::ReleaseTexture()
 {
 	//텍스쳐 객체를 릴리즈합니다.
@@ -265,6 +360,13 @@ void ModelClass::ReleaseTexture()
 		m_Texture->Shutdown();
 		delete m_Texture;
 		m_Texture = nullptr;
+	}
+
+	if (m_TextureArray)
+	{
+		m_TextureArray->Shutdown();
+		delete m_TextureArray;
+		m_TextureArray = nullptr;
 	}
 }
 

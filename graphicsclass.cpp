@@ -4,7 +4,7 @@
 #include "graphicsclass.h"
 
 
-GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr)
+GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr),m_MultiTextureShader(nullptr),m_LightMapShader(nullptr),m_AlphaMapShader(nullptr)
 {
 	m_Direct3D = 0;
 	m_Camera = 0;
@@ -52,7 +52,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 
 	// Set the initial position of the camera.
 	XMMATRIX baseViewMatrix;
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -1.0f);
 	m_Camera->Render();
 	m_Camera->GetViewMatrix(baseViewMatrix);
 
@@ -65,7 +65,11 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the model object.
-	result = m_Model->Initialize(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext(),"stone01.tga","data/cube.txt");
+	/*result = m_Model->Initialize(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext(),"stone01.tga","data/cube.txt");*/
+	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds");*/
+	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/light01.dds");*/
+
+	result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds", "data/alpha01.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -133,6 +137,51 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the text object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_ModelList = new ModelListClass();
+	if (!m_ModelList)
+		return false;
+
+	result = m_ModelList->Initiailze(25);
+	if (!result)
+		return false;
+
+	m_Frustum = new FrustumClass();
+	if (!m_Frustum)
+		return false;
+
+	m_MultiTextureShader = new MultiTextureShader;
+	if (!m_MultiTextureShader)
+		return false;
+
+	result = m_MultiTextureShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the multitexture shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_LightMapShader = new LightMapShader;
+	if (!m_LightMapShader)
+		return false;
+
+	result = m_LightMapShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the lightmap shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_AlphaMapShader = new AlphaMapShaderClass;
+	if (!m_AlphaMapShader)
+		return false;
+
+	result = m_AlphaMapShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the Alphamap shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -205,11 +254,45 @@ void GraphicsClass::Shutdown()
 		m_Text = nullptr;
 	}
 
+	if (m_Frustum)
+	{
+		delete m_Frustum;
+		m_Frustum = nullptr;
+	}
+
+	if (m_ModelList)
+	{
+		m_ModelList->Shutdown();
+		delete m_ModelList;
+		m_ModelList = nullptr;
+	}
+
+	if(m_MultiTextureShader)
+	{
+		m_MultiTextureShader->Shutdown();
+		delete m_MultiTextureShader;
+		m_MultiTextureShader = nullptr;
+	}
+
+	if (m_LightMapShader)
+	{
+		m_LightMapShader->Shutdown();
+		delete m_LightMapShader;
+		m_LightMapShader = nullptr;
+	}
+
+	if (m_AlphaMapShader)
+	{
+		m_AlphaMapShader->Shutdown();
+		delete m_AlphaMapShader;
+		m_AlphaMapShader = nullptr;
+	}
+
 	return;
 }
 
 
-bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
+bool GraphicsClass::Frame(float rotationY)
 {
 	bool result;
 	static float rotation = 0.0f;
@@ -221,13 +304,16 @@ bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
 		rotation -= 360.0f;
 	}
 
-	result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
+	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	//m_Camera->SetRotation(0.0f,rotationY,0.0f);
+
+	/*result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;
 
 	result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
 	if (!result)
-		return false;
+		return false;*/
 
 	// Render the graphics scene.
 	result = Render(rotation);
@@ -243,6 +329,9 @@ bool GraphicsClass::Frame(int fps,int cpu,float frameTime)
 bool GraphicsClass::Render(float rotation)
 {
 	XMMATRIX worldMatrix,worldMatrix_2D, viewMatrix, projectionMatrix,orthoMatrix;
+	float positionX, positionY, positionZ, radius;
+	radius = 1.0f;
+	XMFLOAT4 color;
 	bool result;
 
 
@@ -258,22 +347,70 @@ bool GraphicsClass::Render(float rotation)
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
 
-	// Rotate the world matirx by the rotation value so that the triangle will spin.
-	rotation = XMConvertToRadians(rotation);
-	XMMATRIX rotationMatrix = DirectX::XMMatrixRotationY(rotation);
-	worldMatrix_2D = worldMatrix;
-	worldMatrix = worldMatrix * rotationMatrix;
+	//멀티 텍스쳐 그리기
+    
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
 
-	// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	m_MultiTextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());*/
+
+
+	//라이트맵 그리기
+
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
+
+	m_LightMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());*/
+
+	//알파맵 그리기
 	m_Model->Render(m_Direct3D->GetDeviceContext());
+	m_AlphaMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());
 
-	// Render the model using the color shader.
-	result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(),m_Light->GetAmbientColor(),
-		m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
+	//프러스텀 컬링으로 그리기
+	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
+
+	int modelCount = m_ModelList->GetModelCount();
+
+	int renderCount = 0;
+
+	for (int index = 0; index < modelCount; index++)
+	{
+		m_ModelList->GetData(index, positionX, positionY, positionZ, color);
+
+		if (m_Frustum->CheckCube(positionX, positionY, positionZ, radius))
+		{
+			worldMatrix = XMMatrixTranslation(positionX, positionY, positionZ);
+			
+			m_Model->Render(m_Direct3D->GetDeviceContext());
+
+			m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(), m_Light->GetAmbientColor(),
+				m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+			m_Direct3D->GetWorldMatrix(worldMatrix);
+
+			renderCount++;
+		}
+	}*/
+
+
+	///렌더 카운터 숫자 설정
+	/*result = m_Text->SetRanderCount(renderCount, m_Direct3D->GetDeviceContext());
+
 	if (!result)
 	{
 		return false;
-	}
+	}*/
+
+	//// Put the model vertex and index buffers on the graphics pipeline to prepare them for drawing.
+	//m_Model->Render(m_Direct3D->GetDeviceContext());
+
+	//// Render the model using the color shader.
+	//result = m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(),m_Light->GetAmbientColor(),
+	//	m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
+	//if (!result)
+	//{
+	//	return false;
+	//}
+
+	//이 밑에서 2D 렌더링
 
 	m_Direct3D->TurnZBufferOff();
 
@@ -286,11 +423,11 @@ bool GraphicsClass::Render(float rotation)
 	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());*/
 
 	// Render the text strings.
-	result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix_2D, orthoMatrix);
+	/*result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix);
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 
 	m_Direct3D->TurnOffAlphaBlending();
 

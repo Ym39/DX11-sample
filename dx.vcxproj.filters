@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
+    <Filter Include="Header Files\Shader">
+      <UniqueIdentifier>{ef8af19f-d402-409c-aeff-4468c3740055}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="d3dclass.cpp">
@@ -75,6 +78,24 @@
     <ClCompile Include="FrustumClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ModelListClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiTextureShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureArrayClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LightMapShader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AlphaMapShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -134,26 +155,26 @@
     <ClInclude Include="FrustumClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModelListClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiTextureShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureArrayClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LightMapShader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AlphaMapShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="color.ps">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="color.vs">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="texture.ps">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="texture.vs">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="Light.vs">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="Light.ps">
-      <Filter>Header Files</Filter>
-    </None>
     <None Include="DirectXTex.inl">
       <Filter>Header Files</Filter>
     </None>
@@ -162,6 +183,36 @@
     </None>
     <None Include="FontPixelShader.ps">
       <Filter>Header Files</Filter>
+    </None>
+    <None Include="color.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="color.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Light.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Light.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="texture.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="texture.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Multitexture.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Multitexture.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="LightMap.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Alphamap.ps">
+      <Filter>Header Files\Shader</Filter>
     </None>
   </ItemGroup>
 </Project>

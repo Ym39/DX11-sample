@@ -46,81 +46,18 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 	}
 
 	// Initialize the first sentence.
-	result = InitializeSentence(&m_sentence1, 16, device);
+	result = InitializeSentence(&m_sentence1, 32, device);
 	if (!result)
 	{
 		return false;
 	}
 
-	// Now update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence1, "Hello", 10, 50, 1.0f, 1.0f, 0.0f, deviceContext);
+	result = UpdateSentence(m_sentence1, "Render Count: ", 20, 40, 1.0f, 0.0f, 1.0f, deviceContext);
 	if (!result)
 	{
 		return false;
 	}
-
-	// Initialize the first sentence.
-	result = InitializeSentence(&m_sentence2, 16, device);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Now update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence2, "Goodbye", 100, 200, 1.0f, 0.0f, 1.0f, deviceContext);
-	if (!result)
-	{
-		return false;
-	}
-
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the font object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Create and initialize the font shader object.
-	m_FontShader = new FontShaderClass;
-	if (!m_FontShader)
-	{
-		return false;
-	}
-
-	// Initialize the font shader object.
-	result = m_FontShader->Initialize(device, hwnd);
-	if (!result)
-	{
-		MessageBox(hwnd, L"Could not initialize the font shader object.", L"Error", MB_OK);
-		return false;
-	}
-
-	// Initialize the first sentence.
-	result = InitializeSentence(&m_sentence1, 16, device);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Now update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence1, "Hello", 100, 100, 1.0f, 1.0f, 0.0f, deviceContext);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Initialize the first sentence.
-	result = InitializeSentence(&m_sentence2, 16, device);
-	if (!result)
-	{
-		return false;
-	}
-
-	// Now update the sentence vertex buffer with the new string information.
-	result = UpdateSentence(m_sentence2, "Goodbye", 100, 200, 1.0f, 0.0f, 1.0f, deviceContext);
-	if (!result)
-	{
-		return false;
-	}
+	
 
 	return true;
 }
@@ -162,11 +99,11 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX& worldMatrix
 	}
 
 	// Draw the second sentence.
-	result = RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix);
+	/*result = RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix);
 	if (!result)
 	{
 		return false;
-	}
+	}*/
 
 	return true;
 }
@@ -227,6 +164,24 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	strcat_s(cpuString, "%");
 
 	result = UpdateSentence(m_sentence2, cpuString, 20, 40, 0.0, 1.0, 0.0, deviceContext);
+	if (!result)
+		return false;
+
+	return true;
+}
+
+bool TextClass::SetRanderCount(int randerCount, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[32];
+	char renderCounterString[32];
+	bool result;
+
+	_itoa_s(randerCount, tempString, 10);
+
+	strcpy_s(renderCounterString, "Render Count: ");
+	strcat_s(renderCounterString, tempString);
+
+	result = UpdateSentence(m_sentence1, renderCounterString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
 	if (!result)
 		return false;
 
