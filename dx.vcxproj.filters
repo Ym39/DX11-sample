@@ -96,6 +96,9 @@
     <ClCompile Include="AlphaMapShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="BumpMapShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -173,6 +176,9 @@
     <ClInclude Include="AlphaMapShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BumpMapShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTex.inl">
@@ -212,6 +218,12 @@
       <Filter>Header Files\Shader</Filter>
     </None>
     <None Include="Alphamap.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Bumpmap.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Bumpmap.ps">
       <Filter>Header Files\Shader</Filter>
     </None>
   </ItemGroup>

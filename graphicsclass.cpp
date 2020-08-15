@@ -4,7 +4,7 @@
 #include "graphicsclass.h"
 
 
-GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr),m_MultiTextureShader(nullptr),m_LightMapShader(nullptr),m_AlphaMapShader(nullptr)
+GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr),m_MultiTextureShader(nullptr),m_LightMapShader(nullptr),m_AlphaMapShader(nullptr),m_BumpMapShader(nullptr)
 {
 	m_Direct3D = 0;
 	m_Camera = 0;
@@ -68,8 +68,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	/*result = m_Model->Initialize(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext(),"stone01.tga","data/cube.txt");*/
 	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds");*/
 	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/light01.dds");*/
-
-	result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds", "data/alpha01.dds");
+	//result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds", "data/alpha01.dds");
+	result = m_Model->Initialize_Bump(m_Direct3D->GetDevice(), "data/cube.txt", "data/stone01.dds", "data/bump01.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -102,6 +102,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	m_Light->SetPosition(-5.0f, 0.0f, -200.0f);
 	m_Light->SetSpecularColor(1.0f, 1.0f, 1.0f, 1.0f);
 	m_Light->SetSpecularPower(50.0f);
+	m_Light->SetDirection(0.0f, 0.0f, 1.0f);
+	
 
 	m_Bitmap = new BitmapClass;
 	if (!m_Bitmap)
@@ -182,6 +184,17 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the Alphamap shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_BumpMapShader = new BumpMapShaderClass;
+	if (!m_BumpMapShader)
+		return false;
+
+	result = m_BumpMapShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the bumpamap shader object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -288,16 +301,23 @@ void GraphicsClass::Shutdown()
 		m_AlphaMapShader = nullptr;
 	}
 
+	if (m_BumpMapShader)
+	{
+		m_BumpMapShader->Shutdown();
+		delete m_BumpMapShader;
+		m_BumpMapShader = nullptr;
+	}
+
 	return;
 }
 
 
-bool GraphicsClass::Frame(float rotationY)
+bool GraphicsClass::Frame(float rotationY,float time)
 {
 	bool result;
 	static float rotation = 0.0f;
 
-	rotation += (float)XM_PI * 0.1f;
+	rotation += 0.001f * time;
 
 	if (rotation > 360.0f)
 	{
@@ -316,7 +336,7 @@ bool GraphicsClass::Frame(float rotationY)
 		return false;*/
 
 	// Render the graphics scene.
-	result = Render(rotation);
+	result = Render(rotation,time);
 	if(!result)
 	{
 		return false;
@@ -326,7 +346,7 @@ bool GraphicsClass::Frame(float rotationY)
 }
 
 
-bool GraphicsClass::Render(float rotation)
+bool GraphicsClass::Render(float rotation ,float time)
 {
 	XMMATRIX worldMatrix,worldMatrix_2D, viewMatrix, projectionMatrix,orthoMatrix;
 	float positionX, positionY, positionZ, radius;
@@ -361,8 +381,13 @@ bool GraphicsClass::Render(float rotation)
 	m_LightMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());*/
 
 	//알파맵 그리기
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
+	m_AlphaMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());*/
+
+	//범프맵 그리기
+	worldMatrix = XMMatrixRotationY(rotation);
 	m_Model->Render(m_Direct3D->GetDeviceContext());
-	m_AlphaMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray());
+	m_BumpMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor());
 
 	//프러스텀 컬링으로 그리기
 	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);

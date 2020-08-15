@@ -22,12 +22,13 @@
 #include"MultiTextureShader.h"
 #include"LightMapShader.h"
 #include"AlphaMapShaderClass.h"
+#include"BumpMapShaderClass.h"
 
 /////////////
 // GLOBALS //
 /////////////
 const bool FULL_SCREEN = false;
-const bool VSYNC_ENABLED = true;
+const bool VSYNC_ENABLED = false;
 const float SCREEN_DEPTH = 1000.0f;
 const float SCREEN_NEAR = 0.1f;
 
@@ -44,8 +45,8 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame(float);
-	bool Render(float rotation);
+	bool Frame(float,float);
+	bool Render(float rotation,float);
 
 private:
 	D3DClass* m_Direct3D;
@@ -62,6 +63,7 @@ private:
 	MultiTextureShader* m_MultiTextureShader;
 	LightMapShader* m_LightMapShader;
 	AlphaMapShaderClass* m_AlphaMapShader;
+	BumpMapShaderClass* m_BumpMapShader;
 };
 
 #endif
