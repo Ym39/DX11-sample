@@ -23,6 +23,7 @@
 #include"LightMapShader.h"
 #include"AlphaMapShaderClass.h"
 #include"BumpMapShaderClass.h"
+#include"SpecMapShaderClass.h"
 
 /////////////
 // GLOBALS //
@@ -64,6 +65,7 @@ private:
 	LightMapShader* m_LightMapShader;
 	AlphaMapShaderClass* m_AlphaMapShader;
 	BumpMapShaderClass* m_BumpMapShader;
+	SpecMapShaderClass* m_SpecMapShader;
 };
 
 #endif
