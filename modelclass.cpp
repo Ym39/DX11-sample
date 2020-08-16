@@ -104,7 +104,7 @@ bool ModelClass::Initialize_Bump(ID3D11Device* device, char* modelFilename, char
 	return true;
 }
 
-bool ModelClass::Initialize_Bump(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2, char* textureFilename3)
+bool ModelClass::Initialize_Spec(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2, char* textureFilename3)
 {
 	bool result;
 
