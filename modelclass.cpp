@@ -104,6 +104,35 @@ bool ModelClass::Initialize_Bump(ID3D11Device* device, char* modelFilename, char
 	return true;
 }
 
+bool ModelClass::Initialize_Bump(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2, char* textureFilename3)
+{
+	bool result;
+
+	result = LoadModel(modelFilename);
+	if (!result)
+	{
+		return false;
+	}
+
+	CalculateModelVectors();
+
+	// Initialize the vertex and index buffers.
+	result = InitializeBuffers(device);
+	if (!result)
+	{
+		return false;
+	}
+
+	//이 모델의 텍스쳐를 불러옴
+	result = LoadTexture(device, textureFilename1, textureFilename2,textureFilename3);
+	if (!result)
+	{
+		return false;
+	}
+
+	return true;
+}
+
 bool ModelClass::Initialize(ID3D11Device* device, char* modelFilename, char* textureFilename1, char* textureFilename2, char* textureFilename3)
 {
 	bool result;

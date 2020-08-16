@@ -140,6 +140,7 @@
     <ClCompile Include="ModelListClass.cpp" />
     <ClCompile Include="MultiTextureShader.cpp" />
     <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="SpecMapShaderClass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="TextClass.cpp" />
     <ClCompile Include="TextureArrayClass.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="ModelListClass.h" />
     <ClInclude Include="MultiTextureShader.h" />
     <ClInclude Include="PositionClass.h" />
+    <ClInclude Include="SpecMapShaderClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="TextClass.h" />
     <ClInclude Include="TextureArrayClass.h" />
@@ -184,6 +186,8 @@
     <None Include="Light.vs" />
     <None Include="Multitexture.ps" />
     <None Include="Multitexture.vs" />
+    <None Include="Specmap.ps" />
+    <None Include="Specmap.vs" />
     <None Include="texture.ps" />
     <None Include="texture.vs" />
   </ItemGroup>

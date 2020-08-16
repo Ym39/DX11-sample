@@ -60,6 +60,7 @@ public:
 	bool Initialize(ID3D11Device*,ID3D11DeviceContext*,char*,char*);
 	bool Initialize(ID3D11Device*, char*, char*, char*);
 	bool Initialize_Bump(ID3D11Device*, char*, char*, char*);
+	bool Initialize_Bump(ID3D11Device*, char*, char*, char*,char*);
 	bool Initialize(ID3D11Device*, char*, char*, char*,char*);
 
 	void Shutdown();
