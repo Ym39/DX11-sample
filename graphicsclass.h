@@ -24,6 +24,11 @@
 #include"AlphaMapShaderClass.h"
 #include"BumpMapShaderClass.h"
 #include"SpecMapShaderClass.h"
+#include"DebugWindowClass.h"
+#include"RenderTextureClass.h"
+#include"FogShaderClass.h"
+#include"ClipPlaneShaderClass.h"
+#include"TranslateShaderClass.h"
 
 /////////////
 // GLOBALS //
@@ -48,6 +53,8 @@ public:
 	void Shutdown();
 	bool Frame(float,float);
 	bool Render(float rotation,float);
+	bool RenderToTexture(float rotation);
+	bool RenderScene(float rotation);
 
 private:
 	D3DClass* m_Direct3D;
@@ -66,6 +73,11 @@ private:
 	AlphaMapShaderClass* m_AlphaMapShader;
 	BumpMapShaderClass* m_BumpMapShader;
 	SpecMapShaderClass* m_SpecMapShader;
+	DebugWindowClass* m_DebugWindow;
+	RenderTextureClass* m_RenderTexture;
+	FogShaderClass* m_FogShader;
+	ClipPlaneShaderClass* m_ClipPlaneShader;
+	TranslateShaderClass* m_TranslateShader;
 };
 
 #endif

@@ -7,6 +7,7 @@
 // GLOBALS //
 /////////////
 Texture2D shaderTexture;
+Texture2D noiseTexture;
 SamplerState SampleType;
 
 
@@ -26,10 +27,19 @@ struct PixelInputType
 float4 TexturePixelShader(PixelInputType input) : SV_TARGET
 {
 	float4 textureColor;
+	float4 noiseColor;
 
 
     // Sample the pixel color from the texture using the sampler at this texture coordinate location.
     textureColor = shaderTexture.Sample(SampleType, input.tex);
 
-    return textureColor;
+	noiseColor = noiseTexture.Sample(SampleType,input.tex);
+
+	float4 finalColor = textureColor;
+
+	//finalColor *= noiseColor.r;
+
+	finalColor.a = 1;
+
+    return finalColor;
 }

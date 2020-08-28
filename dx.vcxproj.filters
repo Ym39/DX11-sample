@@ -102,6 +102,21 @@
     <ClCompile Include="SpecMapShaderClass.cpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="RenderTextureClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugWindowClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FogShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ClipPlaneShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslateShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -185,6 +200,21 @@
     <ClInclude Include="SpecMapShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="RenderTextureClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugWindowClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FogShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ClipPlaneShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslateShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTex.inl">
@@ -236,6 +266,24 @@
       <Filter>Header Files\Shader</Filter>
     </None>
     <None Include="Specmap.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Fog.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Fog.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Clipplane.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Clipplane.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Translate.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="Translate.ps">
       <Filter>Header Files\Shader</Filter>
     </None>
   </ItemGroup>

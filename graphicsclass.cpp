@@ -4,7 +4,7 @@
 #include "graphicsclass.h"
 
 
-GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr),m_MultiTextureShader(nullptr),m_LightMapShader(nullptr),m_AlphaMapShader(nullptr),m_BumpMapShader(nullptr),m_SpecMapShader(nullptr)
+GraphicsClass::GraphicsClass() :m_Light(nullptr), m_TextureShader(nullptr), m_Texture(nullptr), m_Bitmap(nullptr), m_Text(nullptr),m_ModelList(nullptr),m_Frustum(nullptr),m_MultiTextureShader(nullptr),m_LightMapShader(nullptr),m_AlphaMapShader(nullptr),m_BumpMapShader(nullptr),m_SpecMapShader(nullptr),m_DebugWindow(nullptr),m_RenderTexture(nullptr),m_FogShader(nullptr),m_ClipPlaneShader(nullptr),m_TranslateShader(nullptr)
 {
 	m_Direct3D = 0;
 	m_Camera = 0;
@@ -65,12 +65,13 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	// Initialize the model object.
-	/*result = m_Model->Initialize(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext(),"stone01.tga","data/cube.txt");*/
+	result = m_Model->Initialize(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext(),"stone01.tga","data/cube.txt");
 	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds");*/
 	/*result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/light01.dds");*/
 	//result = m_Model->Initialize(m_Direct3D->GetDevice(), "data/square.txt", "data/stone01.dds", "data/dirt01.dds", "data/alpha01.dds");
 	/*result = m_Model->Initialize_Bump(m_Direct3D->GetDevice(), "data/cube.txt", "data/stone01.dds", "data/bump01.dds");*/
-	result = m_Model->Initialize_Spec(m_Direct3D->GetDevice(), "data/cube.txt", "data/stone02.dds", "data/bump02.dds", "data/spec02.dds");
+	//result = m_Model->Initialize_Spec(m_Direct3D->GetDevice(), "data/cube.txt", "data/stone02.dds", "data/bump02.dds", "data/spec02.dds");
+	//m_Model->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), "data/seafloor.dds", "data/triangle.txt");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
@@ -210,6 +211,60 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
+	m_RenderTexture = new RenderTextureClass;
+	if (!m_RenderTexture)
+	{
+		return false;
+	}
+
+	result = m_RenderTexture->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight);
+	if (!result)
+		return false;
+
+	m_DebugWindow = new DebugWindowClass;
+	if (!m_DebugWindow)
+		return false;
+
+	result = m_DebugWindow->Initialize(m_Direct3D->GetDevice(), screenWidth, screenHeight, 100, 100);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the  debug window object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_FogShader = new FogShaderClass;
+	if (!m_FogShader)
+		return false;
+
+	result=m_FogShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the  fog shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_ClipPlaneShader = new ClipPlaneShaderClass;
+	if (!m_ClipPlaneShader)
+		return false;
+
+	result = m_ClipPlaneShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the clip plane shader object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_TranslateShader = new TranslateShaderClass;
+	if (!m_TranslateShader)
+		return false;
+
+	result = m_TranslateShader->Initialize(m_Direct3D->GetDevice(), hwnd);
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the translate shader object.", L"Error", MB_OK);
+		return false;
+	}
+
 	return true;
 }
 
@@ -240,7 +295,7 @@ void GraphicsClass::Shutdown()
 	}
 
 	// Release the D3D object.
-	if(m_Direct3D)
+	if (m_Direct3D)
 	{
 		m_Direct3D->Shutdown();
 		delete m_Direct3D;
@@ -292,7 +347,7 @@ void GraphicsClass::Shutdown()
 		m_ModelList = nullptr;
 	}
 
-	if(m_MultiTextureShader)
+	if (m_MultiTextureShader)
 	{
 		m_MultiTextureShader->Shutdown();
 		delete m_MultiTextureShader;
@@ -325,6 +380,41 @@ void GraphicsClass::Shutdown()
 		m_SpecMapShader->Shutdown();
 		delete m_SpecMapShader;
 		m_SpecMapShader = nullptr;
+	}
+
+	if (m_RenderTexture)
+	{
+		m_RenderTexture->Shutdown();
+		delete m_RenderTexture;
+		m_RenderTexture = nullptr;
+	}
+
+	if (m_DebugWindow)
+	{
+		m_DebugWindow->Shutdown();
+		delete m_DebugWindow;
+		m_DebugWindow = nullptr;
+	}
+
+	if (m_FogShader)
+	{
+		m_FogShader->Shutdown();
+		delete m_FogShader;
+		m_FogShader = nullptr;
+	}
+
+	if (m_ClipPlaneShader)
+	{
+		m_ClipPlaneShader->Shutdown();
+		delete m_ClipPlaneShader;
+		m_ClipPlaneShader = 0;
+	}
+
+	if (m_TranslateShader)
+	{
+		m_TranslateShader->Shutdown();
+		delete m_TranslateShader;
+		m_TranslateShader = 0;
 	}
 
 	return;
@@ -371,11 +461,22 @@ bool GraphicsClass::Render(float rotation ,float time)
 	float positionX, positionY, positionZ, radius;
 	radius = 1.0f;
 	XMFLOAT4 color;
+	float fogColor, fogStart, fogEnd;
+	XMFLOAT4 clipPlane = XMFLOAT4(0.0f, -1.0f, 0.0f, 0.0f);
 	bool result;
 
 
+	//result = RenderToTexture(rotation);
+	//if (!result)
+	//	return false;
+
+	fogColor = 0.0f;
+	fogStart = 0.0f;
+	fogEnd = 10.0f;
+	
+
 	// Clear the buffers to begin the scene.
-	m_Direct3D->BeginScene(0.0f, 0.0f, 0.0f, 1.0f);
+	m_Direct3D->BeginScene(fogColor, fogColor, fogColor, 1.0f);
 
 	// Generate the view matrix based on the camera's position.
 	m_Camera->Render();
@@ -385,6 +486,10 @@ bool GraphicsClass::Render(float rotation ,float time)
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
+
+	/*result = RenderScene(rotation);
+	if (!result)
+		return false;*/
 
 	//멀티 텍스쳐 그리기
     
@@ -410,8 +515,25 @@ bool GraphicsClass::Render(float rotation ,float time)
 
 	//반사맵 그리기
 	//worldMatrix = XMMatrixRotationY(rotation);
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
+	m_SpecMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(),m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());*/
+
+	//안개 그리기
+	/*m_Model->Render(m_Direct3D->GetDeviceContext());
+	m_FogShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), fogStart, fogEnd);*/
+
+	//클리핑 평면 그리기
+	/*worldMatrix = XMMatrixRotationY(rotation);
 	m_Model->Render(m_Direct3D->GetDeviceContext());
-	m_SpecMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(),m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
+	m_ClipPlaneShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), clipPlane);*/
+
+	//텍스쳐 이동
+	static float textureTranslation = 0.0f;
+	
+	textureTranslation += 0.01f * time * 0.1f;
+	m_Model->Render(m_Direct3D->GetDeviceContext());
+	m_TranslateShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), textureTranslation);
+
 
 	//프러스텀 컬링으로 그리기
 	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
@@ -478,12 +600,60 @@ bool GraphicsClass::Render(float rotation ,float time)
 		return false;
 	}*/
 
+	//디버그 위도우의 버텍스와 인덱스 버퍼를 그래픽 파이프라인에 넣음
+	/*result = m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 50, 50);
+	if (!result)
+		return false;
+
+	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
+	if (!result)
+		return false;
+*/
 	m_Direct3D->TurnOffAlphaBlending();
 
 	m_Direct3D->TurnZBufferOn();
 
 	//Present the rendered scene to the screen.
 	m_Direct3D->EndScene();
+
+	return true;
+}
+
+bool GraphicsClass::RenderToTexture(float rotation)
+{
+	bool result;
+	 
+	m_RenderTexture->SetRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView());
+
+	m_RenderTexture->ClearRenderTarget(m_Direct3D->GetDeviceContext(), m_Direct3D->GetDepthStencilView(), 0.0f, 0.0f, 1.0f, 1.0f);
+
+	result = RenderScene(rotation);
+	if (!result)
+		return false;
+
+	m_Direct3D->SetBackBufferRenderTarget();
+
+	return true;
+}
+
+bool GraphicsClass::RenderScene(float rotation)
+{
+	XMMATRIX worldMatrix, viewMatrix, projectionMatrix;
+	bool result;
+
+	m_Camera->Render();
+
+	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Camera->GetViewMatrix(viewMatrix);
+	m_Direct3D->GetProjectionMatrix(projectionMatrix);
+
+	worldMatrix = worldMatrix * XMMatrixRotationY(rotation);
+
+	m_Model->Render(m_Direct3D->GetDeviceContext());
+	result = m_SpecMapShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTextureArray(), m_Light->GetDirection(), m_Light->GetDiffuseColor(), m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+
+	if (!result)
+		return false;
 
 	return true;
 }

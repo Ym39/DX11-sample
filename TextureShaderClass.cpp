@@ -20,6 +20,12 @@ bool TextureShaderClass::Initialize(ID3D11Device* device, HWND hwnd)
 		return false;
 	}
 
+
+	m_NoiseTexture = new TextureClass;
+	result = m_NoiseTexture->Initialize(device, nullptr, "data/noise.dds");
+	if (!result)
+		return false;
+
 	return true;
 }
 
@@ -32,7 +38,7 @@ void TextureShaderClass::Shutdown()
 
 bool TextureShaderClass::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX& worldMatrix, XMMATRIX& viewMatrix, XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture)
 {
-	bool result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture);
+	bool result = SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture,m_NoiseTexture->GetTexture());
 	if (!result)
 	{
 		return false;
@@ -251,7 +257,7 @@ void TextureShaderClass::OutputShaderErrorMessage(ID3D10Blob* errorMessage, HWND
 	return;
 }
 
-bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX& worldMatrix, XMMATRIX& viewMatrix, XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture)
+bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext, XMMATRIX& worldMatrix, XMMATRIX& viewMatrix, XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* texture,ID3D11ShaderResourceView* noiseTexture)
 {
 	// Transpose the matrices to prepare them for the shader.
 	worldMatrix = XMMatrixTranspose(worldMatrix);
@@ -285,6 +291,10 @@ bool TextureShaderClass::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	// Set shader texture resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
+
+	//ID3D11ShaderResourceView* noise = m_NoiseTexture->GetTexture();
+	deviceContext->PSSetShaderResources(1, 1, &noiseTexture);
+
 
 	return true;
 }

@@ -118,9 +118,12 @@
     <ClCompile Include="Bitmapclass.cpp" />
     <ClCompile Include="BumpMapShaderClass.cpp" />
     <ClCompile Include="cameraclass.cpp" />
+    <ClCompile Include="ClipPlaneShaderClass.cpp" />
     <ClCompile Include="colorshaderclass.cpp" />
     <ClCompile Include="CpuClass.cpp" />
     <ClCompile Include="d3dclass.cpp" />
+    <ClCompile Include="DebugWindowClass.cpp" />
+    <ClCompile Include="FogShaderClass.cpp" />
     <ClCompile Include="FontClass.cpp" />
     <ClCompile Include="FontShaderClass.cpp" />
     <ClCompile Include="FpsClass.cpp" />
@@ -128,9 +131,14 @@
     <ClCompile Include="graphicsclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="LightClass.cpp" />
+    <ClCompile Include="TranslateShaderClass.cpp" />
     <None Include="Alphamap.ps" />
     <None Include="Bumpmap.ps" />
     <None Include="Bumpmap.vs" />
+    <None Include="Clipplane.ps" />
+    <None Include="Clipplane.vs" />
+    <None Include="Fog.ps" />
+    <None Include="Fog.vs" />
     <None Include="LightMap.ps">
       <FileType>CppCode</FileType>
     </None>
@@ -140,6 +148,7 @@
     <ClCompile Include="ModelListClass.cpp" />
     <ClCompile Include="MultiTextureShader.cpp" />
     <ClCompile Include="PositionClass.cpp" />
+    <ClCompile Include="RenderTextureClass.cpp" />
     <ClCompile Include="SpecMapShaderClass.cpp" />
     <ClCompile Include="systemclass.cpp" />
     <ClCompile Include="TextClass.cpp" />
@@ -148,16 +157,21 @@
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
     <ClCompile Include="TimerClass.cpp" />
+    <None Include="Translate.ps" />
+    <None Include="Translate.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AlphaMapShaderClass.h" />
     <ClInclude Include="Bitmapclass.h" />
     <ClInclude Include="BumpMapShaderClass.h" />
     <ClInclude Include="cameraclass.h" />
+    <ClInclude Include="ClipPlaneShaderClass.h" />
     <ClInclude Include="colorshaderclass.h" />
     <ClInclude Include="CpuClass.h" />
     <ClInclude Include="d3dclass.h" />
+    <ClInclude Include="DebugWindowClass.h" />
     <ClInclude Include="DirectXTex.h" />
+    <ClInclude Include="FogShaderClass.h" />
     <ClInclude Include="FontClass.h" />
     <ClInclude Include="FontShaderClass.h" />
     <ClInclude Include="FpsClass.h" />
@@ -170,6 +184,7 @@
     <ClInclude Include="ModelListClass.h" />
     <ClInclude Include="MultiTextureShader.h" />
     <ClInclude Include="PositionClass.h" />
+    <ClInclude Include="RenderTextureClass.h" />
     <ClInclude Include="SpecMapShaderClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="TextClass.h" />
@@ -177,6 +192,7 @@
     <ClInclude Include="TextureClass.h" />
     <ClInclude Include="TextureShaderClass.h" />
     <ClInclude Include="TimerClass.h" />
+    <ClInclude Include="TranslateShaderClass.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="color.ps" />
