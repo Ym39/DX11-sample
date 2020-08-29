@@ -56,6 +56,7 @@ bool TextureArrayClass::Initialize(ID3D11Device* device, char* filename1, char* 
 
 void TextureArrayClass::Shutdown()
 {
+
 	if (m_textures[0])
 	{
 		m_textures[0]->Release();

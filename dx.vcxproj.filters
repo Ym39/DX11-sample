@@ -117,6 +117,9 @@
     <ClCompile Include="TranslateShaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TransparentShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -215,6 +218,9 @@
     <ClInclude Include="TranslateShaderClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TransparentShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTex.inl">
@@ -284,6 +290,12 @@
       <Filter>Header Files\Shader</Filter>
     </None>
     <None Include="Translate.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="transparent.ps">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="transparent.vs">
       <Filter>Header Files\Shader</Filter>
     </None>
   </ItemGroup>

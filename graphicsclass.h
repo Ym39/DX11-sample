@@ -29,6 +29,7 @@
 #include"FogShaderClass.h"
 #include"ClipPlaneShaderClass.h"
 #include"TranslateShaderClass.h"
+#include"TransparentShaderClass.h"
 
 /////////////
 // GLOBALS //
@@ -60,6 +61,7 @@ private:
 	D3DClass* m_Direct3D;
 	CameraClass* m_Camera;
 	ModelClass* m_Model;
+	ModelClass* m_Model2;
 	ColorShaderClass* m_ColorShader;
 	LightClass* m_Light;
 	TextureShaderClass* m_TextureShader;
@@ -78,6 +80,7 @@ private:
 	FogShaderClass* m_FogShader;
 	ClipPlaneShaderClass* m_ClipPlaneShader;
 	TranslateShaderClass* m_TranslateShader;
+	TransparentShaderClass* m_TransparentShader;
 };
 
 #endif
