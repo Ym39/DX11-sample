@@ -30,6 +30,7 @@
 #include"ClipPlaneShaderClass.h"
 #include"TranslateShaderClass.h"
 #include"TransparentShaderClass.h"
+#include"FbxModelClass.h"
 
 /////////////
 // GLOBALS //
@@ -81,6 +82,7 @@ private:
 	ClipPlaneShaderClass* m_ClipPlaneShader;
 	TranslateShaderClass* m_TranslateShader;
 	TransparentShaderClass* m_TransparentShader;
+	FbxModelClass* m_FbxModel;
 };
 
 #endif

@@ -86,11 +86,24 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 	}
 
 	result = m_Model2->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), "data/stone01.dds", "data/square.txt");
-
+	 
 
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the model object.", L"Error", MB_OK);
+		return false;
+	}
+
+	m_FbxModel = new FbxModelClass;
+	if (!m_FbxModel)
+	{
+		return false;
+	}
+
+	result = m_FbxModel->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), "data/character.fbx", "data/CharacterTexture.dds");
+	if (!result)
+	{
+		MessageBox(hwnd, L"Could not initialize the FBX model object.", L"Error", MB_OK);
 		return false;
 	}
 
@@ -458,6 +471,13 @@ void GraphicsClass::Shutdown()
 		m_TransparentShader = 0;
 	}
 
+	if (m_FbxModel)
+	{
+		m_FbxModel->Shutdown();
+		delete m_FbxModel;
+		m_FbxModel = nullptr;
+	}
+
 	return;
 }
 
@@ -474,7 +494,7 @@ bool GraphicsClass::Frame(float rotationY,float time)
 		rotation -= 360.0f;
 	}
 
-	m_Camera->SetPosition(0.0f, 0.0f, -5.0f);
+	m_Camera->SetPosition(0.0f, 0.0f, -500.0f);
 	//m_Camera->SetRotation(0.0f,rotationY,0.0f);
 
 	/*result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
@@ -576,8 +596,8 @@ bool GraphicsClass::Render(float rotation ,float time)
 	m_TranslateShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture(), textureTranslation);*/
 	
 	//그냥 평면 그리기
-	m_Model->Render(m_Direct3D->GetDeviceContext());
-	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture());
+	//m_Model->Render(m_Direct3D->GetDeviceContext());
+	//m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model->GetTexture());
 
 	/*worldMatrix = worldMatrix * XMMatrixTranslation(1.0f, 0.0f, -1.0f);
 	m_Model2->Render(m_Direct3D->GetDeviceContext());
@@ -589,6 +609,13 @@ bool GraphicsClass::Render(float rotation ,float time)
 	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Model2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model2->GetTexture());
 	if (!result)
 		return false;*/
+
+
+    //FBX 모델 그리기
+	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 90.0f, 0.0f);
+	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 90.0f);
+	m_FbxModel->Render(m_Direct3D->GetDeviceContext());
+	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture());
 
 	//프러스텀 컬링으로 그리기
 	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
@@ -666,7 +693,7 @@ bool GraphicsClass::Render(float rotation ,float time)
 */
 
 	//투명한 평면 그리기
-	worldMatrix = worldMatrix * XMMatrixTranslation(1.0f, 0.0f, -1.0f);
+	/*worldMatrix = worldMatrix * XMMatrixTranslation(1.0f, 0.0f, -1.0f);
 	m_Model2->Render(m_Direct3D->GetDeviceContext());
 	result = m_TransparentShader->Render(m_Direct3D->GetDeviceContext(), m_Model2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model2->GetTexture(),blendAmount);
 	if (!result)
@@ -676,7 +703,7 @@ bool GraphicsClass::Render(float rotation ,float time)
 	m_Model2->Render(m_Direct3D->GetDeviceContext());
 	result = m_TransparentShader->Render(m_Direct3D->GetDeviceContext(), m_Model2->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_Model2->GetTexture(), blendAmount);
 	if (!result)
-		return false;
+		return false;*/
 
 
 	m_Direct3D->TurnOffAlphaBlending();
