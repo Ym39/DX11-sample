@@ -217,7 +217,7 @@ bool SystemClass::Frame()
 	m_Position->GetRotation(rotationY);
 
 	// Do the frame processing for the graphics object.
-	result = m_Graphics->Frame(rotationY,m_Timer->GetTime());
+	result = m_Graphics->Frame(rotationY,m_Timer->GetTime(),m_Fps->GetFps(),m_Cpu->GetCpuPercentage());
 	if(!result)
 	{
 		return false;

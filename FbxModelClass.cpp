@@ -5,7 +5,8 @@ FbxModelClass::FbxModelClass():
 	m_indexBuffer(nullptr),
 	m_Texture(nullptr),
 	m_vertexCount(0),
-	m_indexCount(0)
+	m_indexCount(0),
+	currentPlayKeyframe(0)
 {
 }
 
@@ -47,8 +48,10 @@ void FbxModelClass::Shutdown()
 	return;
 }
 
-void FbxModelClass::Render(ID3D11DeviceContext* deviceContext)
+void FbxModelClass::Render(float time,ID3D11DeviceContext* deviceContext)
 {
+    //PlayAnimation(time,deviceContext);
+
 	RenderBuffers(deviceContext);
 
 	return;
@@ -146,17 +149,17 @@ bool FbxModelClass::LoadFBX(char* fbxFilename, ID3D11Device* device)
 		return false;
 	}
 
-	FbxScene* scene = FbxScene::Create(manager, "scene");
-	importer->Import(scene);
+	mFbxScene = FbxScene::Create(manager, "scene");
+	importer->Import(mFbxScene);
 	importer->Destroy();
 
-	FbxNode* rootNode = scene->GetRootNode();
+	FbxNode* rootNode = mFbxScene->GetRootNode();
 
-	FbxAxisSystem sceneAxisSystem = scene->GetGlobalSettings().GetAxisSystem();
-	FbxAxisSystem::DirectX.ConvertScene(scene);
+	FbxAxisSystem sceneAxisSystem = mFbxScene->GetGlobalSettings().GetAxisSystem();
+	FbxAxisSystem::DirectX.ConvertScene(mFbxScene);
 
 	FbxGeometryConverter geometryConverter(manager);
-	geometryConverter.Triangulate(scene, true);
+	geometryConverter.Triangulate(mFbxScene, true);
 
 	LoadNode(rootNode);
 
@@ -211,6 +214,16 @@ void FbxModelClass::ReleaseModel()
 
 void FbxModelClass::LoadNode(FbxNode* node)
 {
+    ProcessSkeletonHierarchy(node);
+	if (mSkeleton.joints.empty())
+	{
+		mHasAnimation = false;
+	}
+	else
+	{
+		mHasAnimation = true;
+	}
+
 	FbxNodeAttribute* nodeAttribute = node->GetNodeAttribute();
 
 	if (nodeAttribute != nullptr)
@@ -240,6 +253,11 @@ void FbxModelClass::LoadNode(FbxNode* node)
 					vertexCount++;
 				}
 			}
+
+			if (mHasAnimation == true)
+	        {
+	         	ProcessJointsAndAnmations(node);
+	        }
 		}
 	}
 
@@ -252,7 +270,12 @@ void FbxModelClass::LoadNode(FbxNode* node)
 
 void FbxModelClass::InsertVertex(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& uv)
 {
-	VertexType vertex = { position,uv,normal };
+	VertexType vertex;
+	vertex.position = position;
+	vertex.normal = normal;
+	vertex.texture = uv;
+
+	mPositionList.push_back(position);
 
 	auto lookup = indexMapping.find(vertex);
 
@@ -393,3 +416,266 @@ XMFLOAT2 FbxModelClass::ReadUV(const FbxMesh* mesh, int controlPointIndex, int u
 
 	return result;
 }
+
+void FbxModelClass::ProcessSkeletonHierarchy(FbxNode* inRootNode)
+{
+
+	for (int childIndex = 0; childIndex < inRootNode->GetChildCount(); ++childIndex)
+	{
+		FbxNode* currNode = inRootNode->GetChild(childIndex);
+		ProcessSkeletonHierarchyRecursively(currNode,0,0,-1);
+	}
+}
+
+void FbxModelClass::ProcessSkeletonHierarchyRecursively(FbxNode* inNode, int inDepth, int myIndex, int inParentIndex)
+{
+	if (inNode->GetNodeAttribute() && inNode->GetNodeAttribute()->GetAttributeType() && inNode->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eSkeleton)
+	{
+		Joint currJoint;
+		currJoint.parentIndex = inParentIndex;
+		currJoint.name = inNode->GetName();
+		mSkeleton.joints.push_back(currJoint);
+	}
+	for (int i = 0; i<inNode->GetChildCount();i++)
+	{
+	    ProcessSkeletonHierarchyRecursively(inNode->GetChild(i),inDepth+1,mSkeleton.joints.size(),myIndex);
+	}
+}
+
+void FbxModelClass::ProcessJointsAndAnmations(FbxNode* inNode)
+{
+	if (inNode == nullptr)
+	{
+		return;
+	}
+
+    FbxMesh* currMesh = inNode->GetMesh();
+	unsigned int numOfDeformers = currMesh->GetDeformerCount();
+	
+	FbxAMatrix gemotryTransform = GetGeometryTransformation(inNode);
+
+	for (unsigned int deformerIndex = 0; deformerIndex < numOfDeformers; ++deformerIndex)
+	{
+		FbxSkin* currSkin = reinterpret_cast<FbxSkin*>(currMesh->GetDeformer(deformerIndex,FbxDeformer::eSkin));
+		if (!currSkin)
+		{
+			continue;
+		}
+
+		unsigned int numOfCluster = currSkin->GetClusterCount();
+		for (unsigned int clusterIndex = 0; clusterIndex < numOfCluster; ++clusterIndex)
+		{
+			FbxCluster* currCluster = currSkin->GetCluster(clusterIndex);
+			std::string currJointName = currCluster->GetLink()->GetName();
+			unsigned int currJointIndex = FindJointIndexUsingName(currJointName);
+			FbxAMatrix transformMatrix;
+			FbxAMatrix transformLinkMatrix;
+			FbxAMatrix globalBindposeInverseMatrix;
+
+			currCluster->GetTransformMatrix(transformMatrix);
+			currCluster->GetTransformLinkMatrix(transformLinkMatrix);
+			globalBindposeInverseMatrix = transformLinkMatrix.Inverse() * transformMatrix * gemotryTransform;
+
+			/*XMMATRIX xmGlobalBindposeInverseMatrix=XMMatrixIdentity();
+			FbxVector4 translation = globalBindposeInverseMatrix.GetT();
+			FbxVector4 rotation = globalBindposeInverseMatrix.GetR();
+
+			xmGlobalBindposeInverseMatrix *= XMMatrixRotationX(-XMConvertToRadians(rotation.mData[0]));
+			xmGlobalBindposeInverseMatrix *= XMMatrixRotationY(-XMConvertToRadians(rotation.mData[1]));
+			xmGlobalBindposeInverseMatrix *= XMMatrixRotationZ(XMConvertToRadians(rotation.mData[2]));
+			xmGlobalBindposeInverseMatrix *= XMMatrixTranslation(translation.mData[0], translation.mData[1], -translation.mData[2]);*/
+
+			XMFLOAT4X4 boneOffset;
+			for (int i = 0; i < 4; ++i)
+			{
+				for (int j = 0; j < 4; ++j)
+				{
+					boneOffset.m[i][j] = globalBindposeInverseMatrix.Get(i,j);
+				}
+			}
+
+			mSkeleton.joints[currJointIndex].globalBindposeInverse = boneOffset;
+			mSkeleton.joints[currJointIndex].node = currCluster->GetLink();
+
+			unsigned int numOfIndices = currCluster->GetControlPointIndicesCount();
+			for (unsigned int i = 0; i < numOfIndices; ++i)
+			{
+		     		BlendingIndexWeightPair currBlendingIndexWeightPair;
+				currBlendingIndexWeightPair.blendingIndex = currJointIndex;
+				currBlendingIndexWeightPair.blendingWeight = currCluster->GetControlPointWeights()[i];
+				vertices[currCluster->GetControlPointIndices()[i]].blendingInfo.push_back(currBlendingIndexWeightPair);
+				/*vertices[currCluster->GetControlPointIndices()[i]].boneIndex[i] = currJointIndex;
+				switch (i)
+				{
+				case 0:
+					vertices[currCluster->GetControlPointIndices()[i]].boneWeight.x = currCluster->GetControlPointWeights()[i];
+					break;
+				case 1:
+					vertices[currCluster->GetControlPointIndices()[i]].boneWeight.y = currCluster->GetControlPointWeights()[i];
+					break;
+				case 2:
+					vertices[currCluster->GetControlPointIndices()[i]].boneWeight.z = currCluster->GetControlPointWeights()[i];
+					break;
+				}*/
+			}
+			
+			FbxAnimStack* currAnimStack = mFbxScene->GetSrcObject<FbxAnimStack>(0);
+			FbxString animStackName = currAnimStack->GetName();
+			mAnmationName = animStackName.Buffer();
+			FbxTakeInfo* takeInfo = mFbxScene->GetTakeInfo(animStackName);
+			FbxTime start = takeInfo->mLocalTimeSpan.GetStart();
+			FbxTime end = takeInfo->mLocalTimeSpan.GetStop();
+			mAnimationLength = end.GetFrameCount(FbxTime::eFrames30) - start.GetFrameCount(FbxTime::eFrames30) +1;
+			Keyframe** currAnim = &mSkeleton.joints[currJointIndex].animation;
+
+			for(FbxLongLong i = start.GetFrameCount(FbxTime::eFrames30); i<end.GetFrameCount(FbxTime::eFrames30); ++i)
+			{
+				FbxTime currTime;
+				currTime.SetFrame(i,FbxTime::eFrames30);
+				*currAnim = new Keyframe();
+				(*currAnim)->frameName = i;
+				FbxAMatrix currentTransformOffset = inNode->EvaluateGlobalTransform(currTime) * gemotryTransform;
+				FbxAMatrix fbxGlobalTransform= currentTransformOffset.Inverse() * currCluster->GetLink()->EvaluateGlobalTransform(currTime);
+
+				/*XMMATRIX xmGlobalTr = XMMatrixIdentity();
+				FbxVector4 translation = fbxGlobalTransform.GetT();
+				FbxVector4 rotation = fbxGlobalTransform.GetR();
+
+				xmGlobalTr *= XMMatrixRotationX(-XMConvertToRadians(rotation.mData[0]));
+				xmGlobalTr *= XMMatrixRotationY(-XMConvertToRadians(rotation.mData[1]));
+				xmGlobalTr *= XMMatrixRotationZ(XMConvertToRadians(rotation.mData[2]));
+				xmGlobalTr *= XMMatrixTranslation(translation.mData[0], translation.mData[1], -translation.mData[2]);*/
+
+				XMFLOAT4X4 key;
+				for (int i = 0; i < 4; ++i)
+				{
+					for (int j = 0; j < 4; ++j)
+					{
+						key.m[i][j] = fbxGlobalTransform.Get(i, j);
+					}
+				}
+
+				(*currAnim)->globalTransfrom = key;
+				//(*currAnim)->globalTransfrom = XMMatrixTranspose(xmGlobalTr);
+				currAnim = &((*currAnim)->next);
+			}
+		}
+	}
+
+	BlendingIndexWeightPair currBlendingIndexWeightPair;
+	currBlendingIndexWeightPair.blendingIndex = 0;
+	currBlendingIndexWeightPair.blendingWeight = 0;
+	for (auto itr = vertices.begin(); itr != vertices.end(); ++itr)
+	{
+		for (unsigned int i = itr->blendingInfo.size(); i <= 4; ++i)
+		{
+			itr->blendingInfo.push_back(currBlendingIndexWeightPair);
+		}
+	}
+}
+
+FbxAMatrix FbxModelClass::GetGeometryTransformation(FbxNode* inNode)
+{
+    const FbxVector4 lT = inNode->GetGeometricTranslation(FbxNode::eSourcePivot);
+	const FbxVector4 lR = inNode->GetGeometricRotation(FbxNode::eSourcePivot);
+	const FbxVector4 lS = inNode->GetGeometricScaling(FbxNode::eSourcePivot);
+
+	return FbxAMatrix(lT,lR,lS);
+}
+
+unsigned int FbxModelClass::FindJointIndexUsingName(const std::string& inJointName)
+{
+	for (unsigned int i = 0; i < mSkeleton.joints.size(); ++i)
+	{
+		if (mSkeleton.joints[i].name == inJointName)
+		{
+			return i;
+		}
+	}
+
+	return 0;
+}
+
+//void FbxModelClass::PlayAnimation(float time, ID3D11DeviceContext* deviceContext)
+//{
+//    static float lateTime = 0.0f;
+//	lateTime += time;
+//
+//	if (lateTime >= 1000.0f / 30)
+//	{
+//		for (int i = 0; i<vertices.size();i++)
+//		{
+//		    XMVECTOR vertexPos = XMVectorZero();
+//			XMVECTOR originVertexPosition = XMLoadFloat3(&mPositionList[i]);
+//			float lastWeight = 1;
+//			float weight;
+//		    for (auto& v = vertices[i].blendingInfo.begin(); v != vertices[i].blendingInfo.end()-2; v++)
+//		    {
+//			    const Joint& curJoint = mSkeleton.joints[v->blendingIndex];
+//				const Keyframe* curKey = curJoint.animation;
+//				for (int keyCount = 0; keyCount < currentPlayKeyframe; keyCount++)
+//				{
+//				    curKey = curKey->next;
+//				}
+//
+//
+//				XMMATRIX offset = XMLoadFloat4x4(&curJoint.globalBindposeInverse);
+//				XMMATRIX toRoot = XMLoadFloat4x4(&curKey->globalTransfrom);
+//
+//				XMMATRIX finalTransfrom = XMMatrixMultiply(offset,toRoot);
+//				XMVECTOR localPosition = XMVector3TransformCoord(originVertexPosition,offset);
+//
+//				
+//				XMVECTOR skinnedLocalPos = XMVector3TransformCoord(localPosition,finalTransfrom);
+//				XMVECTOR det = XMMatrixDeterminant(offset);
+//				XMVECTOR skinnedWorldPos = XMVector3TransformCoord(skinnedLocalPos,XMMatrixInverse(&det, offset));
+//
+//			    weight = v->blendingWeight;
+//				//vertexPos += skinnedWorldPos * weight;
+//				vertexPos += XMVector3TransformCoord(originVertexPosition, XMMatrixTranspose(finalTransfrom)) * weight;
+//				lastWeight -= weight;
+//		    }
+//
+//			const Joint& curJoint = mSkeleton.joints[(vertices[i].blendingInfo.end()-1)->blendingIndex];
+//			const Keyframe* curKey = curJoint.animation;
+//			for (int keyCount = 0; keyCount < currentPlayKeyframe; keyCount++)
+//			{
+//				curKey = curKey->next;
+//			}
+//
+//			XMMATRIX offset = XMLoadFloat4x4(&curJoint.globalBindposeInverse);
+//			XMMATRIX toRoot = XMLoadFloat4x4(&curKey->globalTransfrom);
+//
+//			XMMATRIX finalTransfrom = XMMatrixMultiply(offset, toRoot);
+//			XMVECTOR localPosition = XMVector3TransformCoord(originVertexPosition, offset);
+//
+//			XMVECTOR skinnedLocalPos = XMVector3TransformCoord(localPosition, finalTransfrom);
+//			XMVECTOR det = XMMatrixDeterminant(offset);
+//			XMVECTOR skinnedWorldPos = XMVector3TransformCoord(skinnedLocalPos, XMMatrixInverse(&det, offset));
+//
+//			//vertexPos += XMVector3TransformCoord(skinnedWorldPos, XMMatrixInverse(&det, curJoint.globalBindposeInverse)) * lastWeight;
+//			vertexPos += XMVector3TransformCoord(originVertexPosition, XMMatrixTranspose(finalTransfrom)) * lastWeight;
+//
+//
+//			XMStoreFloat3(&vertices[i].position,vertexPos);
+//	    }
+//
+//		currentPlayKeyframe++;
+//		if (currentPlayKeyframe == mAnimationLength - 1)
+//		{
+//			currentPlayKeyframe = 0;
+//			lateTime = 0.0f;
+//		}
+//
+//		if (currentPlayKeyframe == 7)
+//		{
+//			int ff = currentPlayKeyframe;
+//		}
+//
+//		D3D11_MAPPED_SUBRESOURCE resource;
+//		deviceContext->Map(m_vertexBuffer,0,D3D11_MAP_WRITE_DISCARD,0,&resource);
+//		memcpy(resource.pData,&(vertices.front()),vertices.size());
+//		deviceContext->Unmap(m_vertexBuffer,0);
+//
+//	}
+//}

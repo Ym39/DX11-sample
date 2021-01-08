@@ -4,7 +4,7 @@
 #include "modelclass.h"
 
 
-ModelClass::ModelClass():m_Texture(nullptr),m_model(nullptr)
+ModelClass::ModelClass():m_Texture(nullptr),m_model(nullptr),m_TextureArray(nullptr)
 {
 	m_vertexBuffer = 0;
 	m_indexBuffer = 0;

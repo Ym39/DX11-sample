@@ -53,7 +53,7 @@ public:
 
 	bool Initialize(int, int, HWND);
 	void Shutdown();
-	bool Frame(float,float);
+	bool Frame(float,float,float,float);
 	bool Render(float rotation,float);
 	bool RenderToTexture(float rotation);
 	bool RenderScene(float rotation);

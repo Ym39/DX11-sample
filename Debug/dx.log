@@ -1,1 +1,20 @@
-﻿  dx.vcxproj -> C:\Users\vinoo\Desktop\DirectX11\Debug\dx.exe
+﻿  FbxModelClass.cpp
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(265,25): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(302,135): warning C4244: '인수': 'T'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=fbxsdk::FbxDouble
+          ]
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(302,98): warning C4244: '인수': 'T'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=fbxsdk::FbxDouble
+          ]
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(302,61): warning C4244: '인수': 'T'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+          with
+          [
+              T=fbxsdk::FbxDouble
+          ]
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(493,58): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\admin\Desktop\DirectX11\FbxModelClass.cpp(554,43): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+  dx.vcxproj -> C:\Users\admin\Desktop\DirectX11\Debug\dx.exe

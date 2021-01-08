@@ -58,6 +58,11 @@ bool TextClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceCont
 		return false;
 	}
 	
+	result = InitializeSentence(&m_sentence2, 32, device);
+	if (!result)
+	{
+		return false;
+	}
 
 	return true;
 }
@@ -99,11 +104,11 @@ bool TextClass::Render(ID3D11DeviceContext* deviceContext, XMMATRIX& worldMatrix
 	}
 
 	// Draw the second sentence.
-	/*result = RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix);
+	result = RenderSentence(deviceContext, m_sentence2, worldMatrix, orthoMatrix);
 	if (!result)
 	{
 		return false;
-	}*/
+	}
 
 	return true;
 }
@@ -144,7 +149,7 @@ bool TextClass::SetFps(int fps, ID3D11DeviceContext* deviceContext)
 		blue = 0.0f;
 	}
 
-	result = UpdateSentence(m_sentence1, fpsString, 20, 20, red, green, blue, deviceContext);
+	result = UpdateSentence(m_sentence2, fpsString, 20, 40, red, green, blue, deviceContext);
 	if (!result)
 		return false;
 
@@ -163,7 +168,7 @@ bool TextClass::SetCpu(int cpu, ID3D11DeviceContext* deviceContext)
 	strcat_s(cpuString, tempString);
 	strcat_s(cpuString, "%");
 
-	result = UpdateSentence(m_sentence2, cpuString, 20, 40, 0.0, 1.0, 0.0, deviceContext);
+	result = UpdateSentence(m_sentence1, cpuString, 20, 20, 0.0, 1.0, 0.0, deviceContext);
 	if (!result)
 		return false;
 
@@ -182,6 +187,33 @@ bool TextClass::SetRanderCount(int randerCount, ID3D11DeviceContext* deviceConte
 	strcat_s(renderCounterString, tempString);
 
 	result = UpdateSentence(m_sentence1, renderCounterString, 20, 20, 1.0f, 1.0f, 1.0f, deviceContext);
+	if (!result)
+		return false;
+
+	return true;
+}
+
+bool TextClass::SetTime(float time, ID3D11DeviceContext* deviceContext)
+{
+	char tempString[16];
+	char timeString[16];
+	bool result;
+
+    sprintf(tempString,"%.4g",time);
+
+	strcpy_s(timeString, "Time : ");
+	strcat_s(timeString, tempString);
+
+	result = UpdateSentence(m_sentence1, timeString, 20, 20, 1.0, 1.0, 1.0, deviceContext);
+	if (!result)
+		return false;
+
+	return true;
+}
+
+bool TextClass::SetText(char* text, int positionX, int positionY, ID3D11DeviceContext* deviceContext)
+{
+	bool result = UpdateSentence(m_sentence1,text, positionX, positionY, 1.0, 1.0, 1.0, deviceContext);
 	if (!result)
 		return false;
 

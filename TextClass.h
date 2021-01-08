@@ -27,6 +27,8 @@ public:
 	bool SetFps(int, ID3D11DeviceContext*);
 	bool SetCpu(int, ID3D11DeviceContext*);
 	bool SetRanderCount(int, ID3D11DeviceContext*);
+	bool SetTime(float time, ID3D11DeviceContext* deviceContext);
+	bool SetText(char* text,int positionX,int positionY, ID3D11DeviceContext*deviceContext);
     
 private:
 	bool InitializeSentence(SentenceType**, int, ID3D11Device*);

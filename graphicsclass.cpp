@@ -482,10 +482,12 @@ void GraphicsClass::Shutdown()
 }
 
 
-bool GraphicsClass::Frame(float rotationY,float time)
+bool GraphicsClass::Frame(float rotationY,float time,float fps,float cpu)
 {
 	bool result;
 	static float rotation = 0.0f;
+	static float currentTime = 0.0f;
+	currentTime += time * 0.001f;
 
 	rotation += 0.001f * time;
 
@@ -494,16 +496,36 @@ bool GraphicsClass::Frame(float rotationY,float time)
 		rotation -= 360.0f;
 	}
 
-	m_Camera->SetPosition(0.0f, 0.0f, -500.0f);
-	//m_Camera->SetRotation(0.0f,rotationY,0.0f);
+	m_Camera->SetPosition(0.0f, 100.0f, -300.0f);
+	//m_Camera->SetRotation(0.0f,0.0f,0.0f);
 
-	/*result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
-	if (!result)
-		return false;
+	//result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
+	//if (!result)
+	//	return false;
 
-	result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
+	/*result = m_Text->SetCpu(cpu, m_Direct3D->GetDeviceContext());
 	if (!result)
 		return false;*/
+
+		/*result = m_Text->SetTime(currentTime,m_Direct3D->GetDeviceContext());
+		if(!result)
+			return false;*/
+
+	char tempString[16];
+	char keyframeString[16];
+
+	_itoa_s(m_FbxModel->GetCurrentKeyframe(), tempString, 10);
+
+	strcpy_s(keyframeString, "key: ");
+	strcat_s(keyframeString, tempString);
+
+	result = m_Text->SetText(keyframeString,20,20,m_Direct3D->GetDeviceContext());
+	if(!result)
+	    return false;
+
+	result = m_Text->SetFps(fps, m_Direct3D->GetDeviceContext());
+	if (!result)
+		return false;
 
 	// Render the graphics scene.
 	result = Render(rotation,time);
@@ -544,6 +566,7 @@ bool GraphicsClass::Render(float rotation ,float time)
 
 	// Get the world, view, and projection matrices from the camera and d3d objects.
 	m_Direct3D->GetWorldMatrix(worldMatrix);
+	m_Direct3D->GetWorldMatrix(worldMatrix_2D);
 	m_Camera->GetViewMatrix(viewMatrix);
 	m_Direct3D->GetProjectionMatrix(projectionMatrix);
 	m_Direct3D->GetOrthoMatrix(orthoMatrix);
@@ -614,8 +637,11 @@ bool GraphicsClass::Render(float rotation ,float time)
     //FBX 모델 그리기
 	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 90.0f, 0.0f);
 	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 90.0f);
-	m_FbxModel->Render(m_Direct3D->GetDeviceContext());
-	m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture());
+	worldMatrix = worldMatrix * XMMatrixRotationY(XMConvertToRadians(180.0f));
+	m_FbxModel->Render(time,m_Direct3D->GetDeviceContext());
+	//m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture());
+	m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(), m_Light->GetAmbientColor(),
+		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
 	//프러스텀 컬링으로 그리기
 	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);
@@ -669,28 +695,28 @@ bool GraphicsClass::Render(float rotation ,float time)
 
 	m_Direct3D->TurnOnAlphaBlending();
 
-	/*result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
-	if (!result)
-		return false;
+	//result = m_Bitmap->Render(m_Direct3D->GetDeviceContext(), 100, 100);
+	//if (!result)
+	//	return false;
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());*/
+	//result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_Bitmap->GetIndexCount(), worldMatrix_2D, viewMatrix, orthoMatrix, m_Bitmap->GetTexture());
 
 	// Render the text strings.
-	/*result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix, orthoMatrix);
+	result = m_Text->Render(m_Direct3D->GetDeviceContext(), worldMatrix_2D, orthoMatrix);
 	if (!result)
 	{
 		return false;
-	}*/
+	}
 
 	//디버그 위도우의 버텍스와 인덱스 버퍼를 그래픽 파이프라인에 넣음
 	/*result = m_DebugWindow->Render(m_Direct3D->GetDeviceContext(), 50, 50);
 	if (!result)
-		return false;
+		return false;*/
 
-	result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
+	/*result = m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_DebugWindow->GetIndexCount(), worldMatrix, viewMatrix, orthoMatrix, m_RenderTexture->GetShaderResourceView());
 	if (!result)
-		return false;
-*/
+		return false;*/
+
 
 	//투명한 평면 그리기
 	/*worldMatrix = worldMatrix * XMMatrixTranslation(1.0f, 0.0f, -1.0f);
