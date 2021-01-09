@@ -18,7 +18,7 @@ FbxModelClass::~FbxModelClass()
 {
 }
 
-bool FbxModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fbxFilename, char* textureFilename)
+bool FbxModelClass::Initialize(ID3D11Device* device,HWND hwnd, ID3D11DeviceContext* deviceContext, char* fbxFilename, char* textureFilename)
 {
 	bool result;
 
@@ -29,6 +29,13 @@ bool FbxModelClass::Initialize(ID3D11Device* device, ID3D11DeviceContext* device
 	}
 
 	result = LoadTexture(device, deviceContext, textureFilename);
+	if (result == false)
+	{
+		return false;
+	}
+
+	mShader = new SkinnedMeshShaderClass;
+	result=mShader->Initialize(device, hwnd);
 	if (result == false)
 	{
 		return false;
@@ -45,14 +52,20 @@ void FbxModelClass::Shutdown()
 
 	ReleaseModel();
 
+	mShader->Shutdown();
+
 	return;
 }
 
-void FbxModelClass::Render(float time,ID3D11DeviceContext* deviceContext)
+void FbxModelClass::Render(float time, ID3D11DeviceContext* deviceContext, XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMFLOAT3 lightPosition, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor, XMFLOAT3 cameraPosition, XMFLOAT4 specularColor, float specularPower)
 {
     //PlayAnimation(time,deviceContext);
 
+	UpdateBoneTransform(time);
+
 	RenderBuffers(deviceContext);
+
+	mShader->Render(deviceContext, GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, GetTexture(), lightPosition, diffuseColor, ambientColor, cameraPosition, specularColor, specularPower, mUpdateBoneTransfroms);
 
 	return;
 }
@@ -91,7 +104,7 @@ void FbxModelClass::RenderBuffers(ID3D11DeviceContext* deviceContext)
 
 
 	// Set vertex buffer stride and offset.
-	stride = sizeof(VertexType);
+	stride = sizeof(InputVertex);
 	offset = 0;
 
 	// Set the vertex buffer to active in the input assembler so it can be rendered.
@@ -161,13 +174,41 @@ bool FbxModelClass::LoadFBX(char* fbxFilename, ID3D11Device* device)
 	FbxGeometryConverter geometryConverter(manager);
 	geometryConverter.Triangulate(mFbxScene, true);
 
+	ProcessSkeletonHierarchy(rootNode);
 	LoadNode(rootNode);
+	SetInputVertices();
+
+	mUpdateBoneTransfroms.resize(mSkeleton.joints.size());
+
+	for (int i = 0; i < mSkeleton.joints.size(); i++)
+	{
+		const Keyframe* curKey = mSkeleton.joints[i].animation;
+		
+		XMMATRIX boneOffset = XMLoadFloat4x4(&mSkeleton.joints[i].globalBindposeInverse);
+		XMMATRIX toParent = XMLoadFloat4x4(&curKey->globalTransfrom);
+		XMMATRIX finalTransform = XMMatrixMultiply(boneOffset, toParent);
+		finalTransform *= XMMatrixScaling(0.01f, 0.01f, 0.01f);
+
+		mUpdateBoneTransfroms[i] = XMMatrixTranspose(finalTransform);
+	}
+
 
 	D3D11_BUFFER_DESC vertexBufferDesc;
 	D3D11_SUBRESOURCE_DATA vertexData;
 	HRESULT result;
 
 	vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
+	vertexBufferDesc.ByteWidth = sizeof(InputVertex) * inputVertices.size();
+	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	vertexBufferDesc.CPUAccessFlags = 0;
+	vertexBufferDesc.MiscFlags = 0;
+	vertexBufferDesc.StructureByteStride = 0;
+
+	vertexData.pSysMem = &(inputVertices.front());
+	vertexData.SysMemPitch = 0;
+	vertexData.SysMemSlicePitch = 0;
+
+	/*vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
 	vertexBufferDesc.ByteWidth = sizeof(VertexType) * vertices.size();
 	vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 	vertexBufferDesc.CPUAccessFlags = 0;
@@ -176,7 +217,7 @@ bool FbxModelClass::LoadFBX(char* fbxFilename, ID3D11Device* device)
 
 	vertexData.pSysMem = &(vertices.front());
 	vertexData.SysMemPitch = 0;
-	vertexData.SysMemSlicePitch = 0;
+	vertexData.SysMemSlicePitch = 0;*/
 
 	result = device->CreateBuffer(&vertexBufferDesc, &vertexData, &m_vertexBuffer);
 	if (FAILED(result))
@@ -214,7 +255,7 @@ void FbxModelClass::ReleaseModel()
 
 void FbxModelClass::LoadNode(FbxNode* node)
 {
-    ProcessSkeletonHierarchy(node);
+    //ProcessSkeletonHierarchy(node);
 	if (mSkeleton.joints.empty())
 	{
 		mHasAnimation = false;
@@ -234,8 +275,13 @@ void FbxModelClass::LoadNode(FbxNode* node)
 
 			std::vector<XMFLOAT3> positions;
 			ProcessControlPoints(mesh, positions);
+			if (mHasAnimation)
+			{
+				ProcessJointsAndAnmations(node);
+			}
+			ProcessMesh(mesh);
 
-			unsigned int triCount = mesh->GetPolygonCount();
+			/*unsigned int triCount = mesh->GetPolygonCount();
 			unsigned int vertexCount = 0;
 
 			for (unsigned int i = 0; i < triCount; ++i)
@@ -257,7 +303,7 @@ void FbxModelClass::LoadNode(FbxNode* node)
 			if (mHasAnimation == true)
 	        {
 	         	ProcessJointsAndAnmations(node);
-	        }
+	        }*/
 		}
 	}
 
@@ -276,7 +322,7 @@ void FbxModelClass::InsertVertex(const XMFLOAT3& position, const XMFLOAT3& norma
 	vertex.texture = uv;
 
 	mPositionList.push_back(position);
-
+ 
 	auto lookup = indexMapping.find(vertex);
 
 	if (lookup != indexMapping.end())
@@ -294,12 +340,74 @@ void FbxModelClass::InsertVertex(const XMFLOAT3& position, const XMFLOAT3& norma
 
 void FbxModelClass::ProcessControlPoints(FbxMesh* mesh, std::vector<XMFLOAT3>& positions)
 {
-	unsigned int count = mesh->GetControlPointsCount();
+	/*unsigned int count = mesh->GetControlPointsCount();
 	positions.resize(count);
 
 	for (unsigned int i = 0; i < positions.size(); i++)
 	{
 		positions[i] = XMFLOAT3(mesh->GetControlPointAt(i).mData[0], mesh->GetControlPointAt(i).mData[1], mesh->GetControlPointAt(i).mData[2]);
+	}*/
+	unsigned int ctrlPointCount = mesh->GetControlPointsCount();
+	for (unsigned int i = 0; i < ctrlPointCount; ++i)
+	{
+		CtrlPoint* currCtrlPoint = new CtrlPoint;
+		XMFLOAT3 currPosition = XMFLOAT3(mesh->GetControlPointAt(i).mData[0], mesh->GetControlPointAt(i).mData[1], mesh->GetControlPointAt(i).mData[2]);
+		currCtrlPoint->position = currPosition;
+		mCtrlPoint[i] = currCtrlPoint;
+	}
+}
+
+void FbxModelClass::ProcessMesh(FbxMesh* mesh)
+{
+	mTriangleCount = mesh->GetPolygonCount();
+	int vertexCount = 0;
+
+	for (unsigned int i = 0; i < mTriangleCount; ++i)
+	{
+		for (unsigned int j = 0; j < 3; ++j)
+		{
+			int controlPointIndex = mesh->GetPolygonVertex(i, j);
+			CtrlPoint* currCtrlPoint = mCtrlPoint[controlPointIndex];
+
+			VertexType temp;
+			temp.position = currCtrlPoint->position;
+			temp.normal = ReadNormal(mesh, controlPointIndex, vertexCount);
+			temp.texture = ReadUV(mesh, controlPointIndex, mesh->GetTextureUVIndex(i, j));
+
+			for (unsigned int i = 0; i < currCtrlPoint->blendingInfo.size(); ++i)
+			{
+				BlendingIndexWeightPair currBlendingInfo;
+				currBlendingInfo.blendingIndex = currCtrlPoint->blendingInfo[i].blendingIndex;
+				currBlendingInfo.blendingWeight = currCtrlPoint->blendingInfo[i].blendingWeight;
+				temp.blendingInfo.push_back(currBlendingInfo);
+			}
+
+			auto lookup = indexMapping.find(temp);
+
+			if (lookup != indexMapping.end())
+			{
+				indices.push_back(lookup->second);
+			}
+			else
+			{
+				unsigned int index = vertices.size();
+				indexMapping[temp] = index;
+				indices.push_back(index);
+				vertices.push_back(temp);
+			}
+		}
+	}
+
+	for (auto itr = mCtrlPoint.begin(); itr != mCtrlPoint.end(); ++itr)
+	{
+		delete itr->second;
+	}
+	mCtrlPoint.clear();
+
+	mPositionList.resize(vertices.size());
+	for (int i = 0; i < mPositionList.size(); i++)
+	{
+		mPositionList[i] = vertices[i].position;
 	}
 }
 
@@ -500,10 +608,11 @@ void FbxModelClass::ProcessJointsAndAnmations(FbxNode* inNode)
 			unsigned int numOfIndices = currCluster->GetControlPointIndicesCount();
 			for (unsigned int i = 0; i < numOfIndices; ++i)
 			{
-		     		BlendingIndexWeightPair currBlendingIndexWeightPair;
+		     	BlendingIndexWeightPair currBlendingIndexWeightPair;
 				currBlendingIndexWeightPair.blendingIndex = currJointIndex;
 				currBlendingIndexWeightPair.blendingWeight = currCluster->GetControlPointWeights()[i];
-				vertices[currCluster->GetControlPointIndices()[i]].blendingInfo.push_back(currBlendingIndexWeightPair);
+				//vertices[currCluster->GetControlPointIndices()[i]].blendingInfo.push_back(currBlendingIndexWeightPair);
+				mCtrlPoint[currCluster->GetControlPointIndices()[i]]->blendingInfo.push_back(currBlendingIndexWeightPair);
 				/*vertices[currCluster->GetControlPointIndices()[i]].boneIndex[i] = currJointIndex;
 				switch (i)
 				{
@@ -565,11 +674,11 @@ void FbxModelClass::ProcessJointsAndAnmations(FbxNode* inNode)
 	BlendingIndexWeightPair currBlendingIndexWeightPair;
 	currBlendingIndexWeightPair.blendingIndex = 0;
 	currBlendingIndexWeightPair.blendingWeight = 0;
-	for (auto itr = vertices.begin(); itr != vertices.end(); ++itr)
+	for (auto itr = mCtrlPoint.begin(); itr != mCtrlPoint.end(); ++itr)
 	{
-		for (unsigned int i = itr->blendingInfo.size(); i <= 4; ++i)
+		for (unsigned int i = itr->second->blendingInfo.size(); i < 4; ++i)
 		{
-			itr->blendingInfo.push_back(currBlendingIndexWeightPair);
+			itr->second->blendingInfo.push_back(currBlendingIndexWeightPair);
 		}
 	}
 }
@@ -594,6 +703,76 @@ unsigned int FbxModelClass::FindJointIndexUsingName(const std::string& inJointNa
 	}
 
 	return 0;
+}
+
+void FbxModelClass::SetInputVertices()
+{
+	inputVertices.resize(vertices.size());
+	for (int i = 0; i < vertices.size(); i++)
+	{
+		inputVertices[i].position = vertices[i].position;
+		inputVertices[i].normal = vertices[i].normal;
+		inputVertices[i].texture = vertices[i].texture;
+
+		for (int j = 0; j < vertices[i].blendingInfo.size(); ++j)
+		{
+			inputVertices[i].boneIndices[j] = vertices[i].blendingInfo[j].blendingIndex;
+			switch (j)
+			{
+			case 0:
+				inputVertices[i].weight.x = vertices[i].blendingInfo[j].blendingWeight;
+				break;
+			case 1:
+				inputVertices[i].weight.y = vertices[i].blendingInfo[j].blendingWeight;
+				break;
+			case 2:
+				inputVertices[i].weight.z = vertices[i].blendingInfo[j].blendingWeight;
+				break;
+			}
+		}
+	}
+
+}
+
+void FbxModelClass::UpdateBoneTransform(float time)
+{
+	static float lateTime = 0.0f;
+	lateTime += time;
+
+	if (lateTime >= 1000.0f / 30.0f)
+	{
+		for (int i = 0; i < mSkeleton.joints.size(); i++)
+		{
+			const Keyframe* curKey = mSkeleton.joints[i].animation;
+			for (int keyCount = 0; keyCount < currentPlayKeyframe; keyCount++)
+			{
+				curKey = curKey->next;
+			}
+
+			XMMATRIX boneOffset = XMLoadFloat4x4(&mSkeleton.joints[i].globalBindposeInverse);
+			XMMATRIX toParent = XMLoadFloat4x4(&curKey->globalTransfrom);
+			XMMATRIX finalTransform = XMMatrixMultiply(boneOffset, toParent);
+		    finalTransform *= XMMatrixScaling(0.01f, 0.01f, 0.01f);
+
+			mUpdateBoneTransfroms[i] = XMMatrixTranspose(finalTransform);
+		}
+
+		currentPlayKeyframe++;
+		lateTime = 0.0f;
+
+		if (currentPlayKeyframe == mAnimationLength - 1)
+		{
+			currentPlayKeyframe = 0;
+			lateTime = 0.0f;
+		}
+
+		/*if (currentPlayKeyframe == 7)
+		{
+			int ff = currentPlayKeyframe;
+		}*/
+
+
+	}
 }
 
 //void FbxModelClass::PlayAnimation(float time, ID3D11DeviceContext* deviceContext)
@@ -632,7 +811,7 @@ unsigned int FbxModelClass::FindJointIndexUsingName(const std::string& inJointNa
 //
 //			    weight = v->blendingWeight;
 //				//vertexPos += skinnedWorldPos * weight;
-//				vertexPos += XMVector3TransformCoord(originVertexPosition, XMMatrixTranspose(finalTransfrom)) * weight;
+//				vertexPos += XMVector3TransformCoord(originVertexPosition, finalTransfrom) * weight;
 //				lastWeight -= weight;
 //		    }
 //
@@ -654,7 +833,7 @@ unsigned int FbxModelClass::FindJointIndexUsingName(const std::string& inJointNa
 //			XMVECTOR skinnedWorldPos = XMVector3TransformCoord(skinnedLocalPos, XMMatrixInverse(&det, offset));
 //
 //			//vertexPos += XMVector3TransformCoord(skinnedWorldPos, XMMatrixInverse(&det, curJoint.globalBindposeInverse)) * lastWeight;
-//			vertexPos += XMVector3TransformCoord(originVertexPosition, XMMatrixTranspose(finalTransfrom)) * lastWeight;
+//			vertexPos += XMVector3TransformCoord(originVertexPosition, finalTransfrom) * lastWeight;
 //
 //
 //			XMStoreFloat3(&vertices[i].position,vertexPos);

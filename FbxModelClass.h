@@ -11,6 +11,9 @@ using namespace std;
 
 #include"TextureClass.h"
 #include"TextureArrayClass.h"
+#include"MathHelper.h"
+#include "Utility.h"
+#include "SkinnedMeshShaderClass.h"
 
 struct BlendingIndexWeightPair
 {
@@ -44,49 +47,52 @@ struct VertexType
 		boneWeight.z = 0.0f;*/
 	}
 
-	bool operator==(const VertexType& other) const
+	bool operator==(const VertexType& rhs) const
 	{
-		return position.x == other.position.x && position.y == other.position.y && position.z == other.position.z && texture.x == other.texture.x && texture.y == other.texture.y && normal.x == other.normal.x && normal.y == other.normal.y && normal.z == other.normal.z;
+		bool sameBlendingInfo = true;
+
+		if(!(blendingInfo.empty() && rhs.blendingInfo.empty()))
+		{
+			// Each vertex should only have 4 index-weight blending info pairs
+			for (unsigned int i = 0; i < 4; ++i)
+			{
+				if (blendingInfo[i].blendingIndex != rhs.blendingInfo[i].blendingIndex ||
+					abs(blendingInfo[i].blendingWeight - rhs.blendingInfo[i].blendingWeight) > 0.001)
+				{
+					sameBlendingInfo = false;
+					break;
+				}
+			}
+		}
+
+		bool result1 = MathHelper::CompareVector3WithEpsilon(position, rhs.position);
+		bool result2 = MathHelper::CompareVector3WithEpsilon(normal, rhs.normal);
+		bool result3 = MathHelper::CompareVector2WithEpsilon(texture, rhs.texture);
+
+		return result1 && result2 && result3 && sameBlendingInfo;
 	}
 };
 
-struct Keyframe
+struct InputVertex
 {
-	FbxLongLong frameName;
-	XMFLOAT4X4 globalTransfrom;
-	Keyframe* next;
-
-	Keyframe() : 
-	next(nullptr)
-	{}
-
+	XMFLOAT3 position;
+	XMFLOAT2 texture;
+	XMFLOAT3 normal;
+	XMFLOAT3 weight;
+	unsigned int boneIndices[4];
 };
 
-struct Joint
+struct CtrlPoint
 {
-	std::string name;
-	int parentIndex;
-	XMFLOAT4X4 globalBindposeInverse;
-	Keyframe* animation;
-	FbxNode* node;
+	XMFLOAT3 position;
+	std::vector<BlendingIndexWeightPair> blendingInfo;
 
-	Joint():
-	node(nullptr),
-	animation(nullptr)
+	CtrlPoint()
 	{
-		parentIndex = -1;
+		blendingInfo.reserve(4);
 	}
-
-	//~Joint()
-	//{
-	//	while (animation)
-	//	{
-	//		Keyframe* temp = animation->next;
-	//		delete animation;
-	//		animation = temp;
-	//	}
-	//}
 };
+
 
 struct Skeleton
 {
@@ -147,10 +153,10 @@ public:
 	FbxModelClass(const FbxModelClass&);
 	~FbxModelClass();
 	
-	bool Initialize(ID3D11Device* device, ID3D11DeviceContext* deviceContext, char* fbxFilename, char* textureFilename);
+	bool Initialize(ID3D11Device* device,HWND hwnd, ID3D11DeviceContext* deviceContext, char* fbxFilename, char* textureFilename);
 
 	void Shutdown();
-	void Render(float time,ID3D11DeviceContext* deviceContext);
+	void Render(float time,ID3D11DeviceContext* deviceContext,XMMATRIX worldMatrix, XMMATRIX viewMatrix, XMMATRIX projectionMatrix, XMFLOAT3 lightPosition, XMFLOAT4 diffuseColor, XMFLOAT4 ambientColor, XMFLOAT3 cameraPosition, XMFLOAT4 specularColor, float specularPower);
 
 	int GetIndexCount() const;
 	ID3D11ShaderResourceView* GetTexture() const;
@@ -170,6 +176,7 @@ private:
 	void LoadNode(FbxNode* node);
 	void InsertVertex(const XMFLOAT3& position, const XMFLOAT3& normal, const XMFLOAT2& uv);
 	void ProcessControlPoints(FbxMesh* mesh, std::vector<XMFLOAT3>& positions);
+	void ProcessMesh(FbxMesh* mesh);
     
 	XMFLOAT3 ReadNormal(const FbxMesh* mesh, int controlPointIndex, int vertexCounter);
 	XMFLOAT2 ReadUV(const FbxMesh* mesh, int controlPointIndex, int uvIndex);
@@ -183,6 +190,9 @@ private:
 	unsigned int FindJointIndexUsingName(const std::string& inJointName);
 
 	//void PlayAnimation(float time, ID3D11DeviceContext* deviceContext);
+	void SetInputVertices();
+
+	void UpdateBoneTransform(float time);
 
 
 
@@ -198,10 +208,17 @@ private:
 	FbxLongLong mAnimationLength;
 	unsigned int currentPlayKeyframe;
 
+	unsigned int mTriangleCount;
+	unordered_map<unsigned int, CtrlPoint*> mCtrlPoint;
+
 	vector<VertexType> vertices;
+	vector<InputVertex> inputVertices;
 	vector<XMFLOAT3> mPositionList;
 	vector<unsigned int> indices;
 	unordered_map<VertexType, unsigned int> indexMapping;
+
+	SkinnedMeshShaderClass* mShader;
+	vector<XMMATRIX> mUpdateBoneTransfroms;
 
 };
 

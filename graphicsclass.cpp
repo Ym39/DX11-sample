@@ -100,7 +100,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	result = m_FbxModel->Initialize(m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext(), "data/character.fbx", "data/CharacterTexture.dds");
+	result = m_FbxModel->Initialize(m_Direct3D->GetDevice(),hwnd, m_Direct3D->GetDeviceContext(), "data/character.fbx", "data/CharacterTexture.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the FBX model object.", L"Error", MB_OK);
@@ -638,10 +638,11 @@ bool GraphicsClass::Render(float rotation ,float time)
 	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 90.0f, 0.0f);
 	//worldMatrix = worldMatrix * XMMatrixRotationRollPitchYaw(0.0f, 0.0f, 90.0f);
 	worldMatrix = worldMatrix * XMMatrixRotationY(XMConvertToRadians(180.0f));
-	m_FbxModel->Render(time,m_Direct3D->GetDeviceContext());
+	worldMatrix *= XMMatrixScaling(100.0f, 100.0f, 100.0f);
+	worldMatrix *= XMMatrixTranslation(0.0f, 200.0f, 0.0f);
+	m_FbxModel->Render(time, m_Direct3D->GetDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Light->GetPosition(), m_Light->GetDiffuseColor(),m_Light->GetAmbientColor(),m_Camera->GetPosition(),m_Light->GetSpecularColor(),m_Light->GetSpecularPower());
 	//m_TextureShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture());
-	m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(), m_Light->GetAmbientColor(),
-		m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
+	//m_ColorShader->Render(m_Direct3D->GetDeviceContext(), m_FbxModel->GetIndexCount(), worldMatrix, viewMatrix, projectionMatrix, m_FbxModel->GetTexture(), m_Light->GetPosition(), m_Light->GetDiffuseColor(), m_Light->GetAmbientColor(),m_Camera->GetPosition(), m_Light->GetSpecularColor(), m_Light->GetSpecularPower());
 
 	//프러스텀 컬링으로 그리기
 	/*m_Frustum->ConstructFrustum(SCREEN_DEPTH, projectionMatrix, viewMatrix);

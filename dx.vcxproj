@@ -144,6 +144,8 @@
     <ClCompile Include="graphicsclass.cpp" />
     <ClCompile Include="inputclass.cpp" />
     <ClCompile Include="LightClass.cpp" />
+    <ClCompile Include="MathHelper.cpp" />
+    <ClCompile Include="SkinnedMeshShaderClass.cpp" />
     <ClCompile Include="TranslateShaderClass.cpp" />
     <ClCompile Include="TransparentShaderClass.cpp" />
     <None Include="Alphamap.ps" />
@@ -171,6 +173,8 @@
     <ClCompile Include="TextureShaderClass.cpp" />
     <ClCompile Include="TimeClass.cpp" />
     <ClCompile Include="TimerClass.cpp" />
+    <None Include="SkinnedMesh.ps" />
+    <None Include="SkinnedMesh.vs" />
     <None Include="Translate.ps" />
     <None Include="Translate.vs" />
     <None Include="transparent.ps" />
@@ -197,11 +201,13 @@
     <ClInclude Include="inputclass.h" />
     <ClInclude Include="LightClass.h" />
     <ClInclude Include="LightMapShader.h" />
+    <ClInclude Include="MathHelper.h" />
     <ClInclude Include="modelclass.h" />
     <ClInclude Include="ModelListClass.h" />
     <ClInclude Include="MultiTextureShader.h" />
     <ClInclude Include="PositionClass.h" />
     <ClInclude Include="RenderTextureClass.h" />
+    <ClInclude Include="SkinnedMeshShaderClass.h" />
     <ClInclude Include="SpecMapShaderClass.h" />
     <ClInclude Include="systemclass.h" />
     <ClInclude Include="TextClass.h" />
@@ -211,6 +217,7 @@
     <ClInclude Include="TimerClass.h" />
     <ClInclude Include="TranslateShaderClass.h" />
     <ClInclude Include="TransparentShaderClass.h" />
+    <ClInclude Include="Utility.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="color.ps" />

@@ -123,6 +123,12 @@
     <ClCompile Include="FbxModelClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="MathHelper.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SkinnedMeshShaderClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="d3dclass.h">
@@ -227,6 +233,15 @@
     <ClInclude Include="FbxModelClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SkinnedMeshShaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="DirectXTex.inl">
@@ -302,6 +317,12 @@
       <Filter>Header Files\Shader</Filter>
     </None>
     <None Include="transparent.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="SkinnedMesh.vs">
+      <Filter>Header Files\Shader</Filter>
+    </None>
+    <None Include="SkinnedMesh.ps">
       <Filter>Header Files\Shader</Filter>
     </None>
   </ItemGroup>
