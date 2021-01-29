@@ -340,13 +340,6 @@ void FbxModelClass::InsertVertex(const XMFLOAT3& position, const XMFLOAT3& norma
 
 void FbxModelClass::ProcessControlPoints(FbxMesh* mesh, std::vector<XMFLOAT3>& positions)
 {
-	/*unsigned int count = mesh->GetControlPointsCount();
-	positions.resize(count);
-
-	for (unsigned int i = 0; i < positions.size(); i++)
-	{
-		positions[i] = XMFLOAT3(mesh->GetControlPointAt(i).mData[0], mesh->GetControlPointAt(i).mData[1], mesh->GetControlPointAt(i).mData[2]);
-	}*/
 	unsigned int ctrlPointCount = mesh->GetControlPointsCount();
 	for (unsigned int i = 0; i < ctrlPointCount; ++i)
 	{

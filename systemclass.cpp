@@ -311,7 +311,7 @@ void SystemClass::InitializeWindows(int& screenWidth, int& screenHeight)
 	SetFocus(m_hwnd);
 
 	// Hide the mouse cursor.
-	ShowCursor(false);
+	ShowCursor(true);
 
 	return;
 }
@@ -342,9 +342,14 @@ void SystemClass::ShutdownWindows()
 	return;
 }
 
-
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 {
+    if(ImGui_ImplWin32_WndProcHandler(hwnd,umessage,wparam,lparam))
+	{
+	    return true;
+	}
+
 	switch(umessage)
 	{
 		// Check if the window is being destroyed.

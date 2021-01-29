@@ -33,6 +33,13 @@
 #include"FbxModelClass.h"
 
 /////////////
+///IMGUI/////
+/////////////
+#include "Imgui/imgui.h"
+#include "Imgui/imgui_impl_win32.h"
+#include "Imgui/imgui_impl_dx11.h"
+
+/////////////
 // GLOBALS //
 /////////////
 const bool FULL_SCREEN = false;
