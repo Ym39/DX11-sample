@@ -22,6 +22,7 @@
     <VCProjectVersion>16.0</VCProjectVersion>
     <ProjectGuid>{C5A4C96D-F95E-43A2-95F0-18DD8E7199B7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -86,6 +87,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>C:\Program Files\Autodesk\FBX\FBX SDK\2020.2\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <SDLCheck>false</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <TargetMachine>MachineX86</TargetMachine>
@@ -142,6 +144,7 @@
     <ClCompile Include="FpsClass.cpp" />
     <ClCompile Include="FrustumClass.cpp" />
     <ClCompile Include="graphicsclass.cpp" />
+    <ClCompile Include="ImGuiClass.cpp" />
     <ClCompile Include="Imgui\imgui.cpp" />
     <ClCompile Include="Imgui\imgui_draw.cpp" />
     <ClCompile Include="Imgui\imgui_impl_dx11.cpp" />
@@ -204,6 +207,7 @@
     <ClInclude Include="FpsClass.h" />
     <ClInclude Include="FrustumClass.h" />
     <ClInclude Include="graphicsclass.h" />
+    <ClInclude Include="ImGuiClass.h" />
     <ClInclude Include="Imgui\imconfig.h" />
     <ClInclude Include="Imgui\imgui.h" />
     <ClInclude Include="Imgui\imgui_impl_dx11.h" />

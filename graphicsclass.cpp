@@ -305,13 +305,8 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	//Imgui ¼ÂÆÃ
-	IMGUI_CHECKVERSION();
-	ImGui::CreateContext();
-	ImGuiIO& io = ImGui::GetIO();
-	ImGui_ImplWin32_Init(hwnd);
-	ImGui_ImplDX11_Init(m_Direct3D->GetDevice(),m_Direct3D->GetDeviceContext());
-	ImGui::StyleColorsDark();
+	mImgui = new ImGuiClass;
+	mImgui->Initialize(hwnd, m_Direct3D->GetDevice(), m_Direct3D->GetDeviceContext());
 
 	return true;
 }
@@ -748,60 +743,7 @@ bool GraphicsClass::Render(float rotation ,float time)
 
 	m_Direct3D->TurnZBufferOn();
 
-	static int counter = 0;
-	//Imgui
-	ImGui_ImplDX11_NewFrame();
-	ImGui_ImplWin32_NewFrame();
-	ImGui::NewFrame();
-	ImGui::Begin("Test");
-	ImGui::Text("This is example text");
-	if (ImGui::Button("Click Me!"))
-	{
-	   counter+=1;
-	}
-	ImGui::SameLine();
-	std::string clickCount = "Click Count : "+std::to_string(counter);
-	ImGui::Text(clickCount.c_str());
-	
-	ImGui::DragFloat3("Camera Position",cameraPosition,1.0f,-1000.0f,1000.0f);
-
-	//Dialog
-
-	ImGui::End();
-	float my_color[4] = {0.0f,};
-
-	bool my_tool_active = true;
-	// Create a window called "My First Tool", with a menu bar.
-	ImGui::Begin("My First Tool", &my_tool_active, ImGuiWindowFlags_MenuBar);
-	if (ImGui::BeginMenuBar())
-	{
-		if (ImGui::BeginMenu("File"))
-		{
-			if (ImGui::MenuItem("Open..", "Ctrl+O")) { /* Do stuff */ }
-			if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Do stuff */ }
-			if (ImGui::MenuItem("Close", "Ctrl+W")) { my_tool_active = false; }
-			ImGui::EndMenu();
-		}
-		ImGui::EndMenuBar();
-	}
-
-	// Edit a color (stored as ~4 floats)
-	ImGui::ColorEdit4("Color", my_color);
-
-	// Plot some values
-	const float my_values[] = { 0.2f, 0.1f, 1.0f, 0.5f, 0.9f, 2.2f };
-	ImGui::PlotLines("Frame Times", my_values, IM_ARRAYSIZE(my_values));
-
-	// Display contents in a scrolling region
-	ImGui::TextColored(ImVec4(1, 1, 0, 1), "Important Stuff");
-	ImGui::BeginChild("Scrolling");
-	for (int n = 0; n < 50; n++)
-		ImGui::Text("%04d: Some text", n);
-	ImGui::EndChild();
-	ImGui::End();
-
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+	mImgui->Render();
 
 	//Present the rendered scene to the screen.
 	m_Direct3D->EndScene();

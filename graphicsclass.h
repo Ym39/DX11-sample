@@ -32,6 +32,8 @@
 #include"TransparentShaderClass.h"
 #include"FbxModelClass.h"
 
+#include "ImGuiClass.h"
+
 /////////////
 ///IMGUI/////
 /////////////
@@ -90,6 +92,7 @@ private:
 	TranslateShaderClass* m_TranslateShader;
 	TransparentShaderClass* m_TransparentShader;
 	FbxModelClass* m_FbxModel;
+	ImGuiClass* mImgui;
 };
 
 #endif
