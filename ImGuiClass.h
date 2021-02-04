@@ -6,6 +6,7 @@
 #include "Imgui/imgui_impl_dx11.h"
 #include <string>
 #include <filesystem>
+#include <stack>
 namespace fs = std::filesystem;
 
 class ImGuiClass
@@ -18,9 +19,13 @@ public:
 	void Render();
 
 private:
+    fs::path mRootPath;
 	fs::path mCurrentPath;
-	std::vector<const char*> mCurrentDirectoryFiles;
-	std::vector<std::string> list;
+	std::vector<std::string> mCurrentDirectoryFileNames;
+	std::vector<fs::path> mPopup;
+
+    std::string mSelectFilePath;
+	const char* mSeletFilePathCstr;
 
 	int mCurrentItemNumber;
 	bool mIsLatest;
