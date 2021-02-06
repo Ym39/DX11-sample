@@ -100,7 +100,7 @@ bool GraphicsClass::Initialize(int screenWidth, int screenHeight, HWND hwnd)
 		return false;
 	}
 
-	result = m_FbxModel->Initialize(m_Direct3D->GetDevice(),hwnd, m_Direct3D->GetDeviceContext(), "C:\\Users\\admin\\Desktop\\DirectX11\\data\\character.fbx", "data/CharacterTexture.dds");
+	result = m_FbxModel->Initialize(m_Direct3D->GetDevice(),hwnd, m_Direct3D->GetDeviceContext(), "data\\character.fbx", "data\\character.fbm\\vanguard_diffuse.dds");
 	if (!result)
 	{
 		MessageBox(hwnd, L"Could not initialize the FBX model object.", L"Error", MB_OK);
